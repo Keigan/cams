@@ -1,153 +1,2139 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Austin Traffic Camera Photos</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WireGuide Pro – Avionics Wiring Harness Assistant</title>
+<style>
+  /* ============================================================
+     WIREGUIDE PRO – AVIONICS WIRING HARNESS ASSISTANT
+     Aesthetic: Industrial/Utilitarian + High-Contrast Dark Mode
+     Font: Roboto Mono (monospace technical) + Barlow Condensed
+  ============================================================ */
 
-        body {
-            background-color: #1a1a1a;
-            color: white;
-            font-family: 'Arial', sans-serif;
-            line-height: 1.6;
-        }
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Roboto+Mono:wght@300;400;500;700&display=swap');
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+  :root {
+    --bg-primary: #0a0c0f;
+    --bg-secondary: #111418;
+    --bg-card: #161b22;
+    --bg-elevated: #1e2530;
+    --border: #2a3340;
+    --border-bright: #3d5068;
+    --accent: #ff6b35;
+    --accent-dim: rgba(255, 107, 53, 0.15);
+    --accent-glow: rgba(255, 107, 53, 0.4);
+    --green: #39d353;
+    --green-dim: rgba(57, 211, 83, 0.15);
+    --blue: #4a9eff;
+    --blue-dim: rgba(74, 158, 255, 0.15);
+    --yellow: #f0c040;
+    --yellow-dim: rgba(240, 192, 64, 0.15);
+    --red: #ff4444;
+    --text-primary: #e8ecf0;
+    --text-secondary: #8b98a8;
+    --text-muted: #4a5568;
+    --pin-inactive: #1e2530;
+    --pin-border: #2a3340;
+    --pin-active-fill: rgba(255, 107, 53, 0.2);
+    --pin-active-border: #ff6b35;
+    --pin-done-fill: rgba(57, 211, 83, 0.15);
+    --pin-done-border: #39d353;
+    --font-display: 'Barlow Condensed', sans-serif;
+    --font-mono: 'Roboto Mono', monospace;
+  }
 
-        .header {
-            text-align: center;
-            padding: 20px;
-            background-color: #333;
-            margin-bottom: 20px;
-        }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        .photo-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-            padding: 1rem;
-        }
+  html { font-size: 16px; scroll-behavior: smooth; }
 
-        .photo-container {
-            position: relative;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-        }
+  body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    min-height: 100vh;
+    overflow-x: hidden;
+    /* subtle grid texture */
+    background-image:
+      linear-gradient(rgba(42,51,64,0.3) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(42,51,64,0.3) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
 
-        .photo-container:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
-        }
+  /* ── HEADER ─────────────────────────────────────────────── */
+  #app-header {
+    background: var(--bg-secondary);
+    border-bottom: 2px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
 
-        .photo {
-            width: 100%;
-            height: auto;
-            max-width: 100%;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: opacity 0.3s ease-in-out;
-        }
+  .header-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
 
-        .photo:hover {
-            opacity: 0.9;
-        }
+  .header-logo-icon {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; color: #fff; font-weight: 700;
+    flex-shrink: 0;
+  }
 
-        .camera-info {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            font-size: 0.9em;
-        }
+  .header-title {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--text-primary);
+  }
 
-        .camera-info h3 {
-            margin-bottom: 5px;
-            font-size: 1rem;
-        }
+  .header-title span { color: var(--accent); }
 
-        @media (max-width: 768px) {
-            .photo-grid {
-                grid-template-columns: 1fr;
-            }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
 
-            .container {
-                padding: 10px;
-            }
-        }
-    </style>
-    <script>
-async function fetchData() {
-    const url = 'https://data.austintexas.gov/resource/pj7k-98z2.json?$limit=3000&$order=timestamp%20desc&$select=device_id,status_desc,timestamp&$where=device_type%20=%20%27camera%27';
-    const response = await fetch(url);
-    const data = await response.json();
-    return data;
-}
+  .badge {
+    padding: 3px 10px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .badge-version { background: var(--bg-elevated); color: var(--text-secondary); border: 1px solid var(--border); }
+  .badge-faa { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(74,158,255,0.3); }
 
-function displayImages(data) {
-    const container = document.querySelector('.photo-grid');
-    // Clear previous content before adding new images
-    container.innerHTML = '';
+  /* ── MAIN LAYOUT ─────────────────────────────────────────── */
+  #app-main {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 24px 20px;
+  }
 
-    data.forEach(item => {
-        const device_id = item.device_id;
-        const imageUrl = `https://cctv.austinmobility.io/image/${device_id}.jpg`;
+  /* ── SCREENS ─────────────────────────────────────────────── */
+  .screen { display: none; }
+  .screen.active { display: block; }
 
-        const photoContainer = document.createElement('div');
-        photoContainer.classList.add('photo-container');
+  /* ── SCREEN: CONNECTOR SELECTION ─────────────────────────── */
+  .screen-header {
+    margin-bottom: 28px;
+  }
+  .screen-header h1 {
+    font-family: var(--font-display);
+    font-size: 36px;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    line-height: 1;
+  }
+  .screen-header h1 span { color: var(--accent); }
+  .screen-header p {
+    margin-top: 6px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    letter-spacing: 0.05em;
+  }
 
-        const img = document.createElement('img');
-        img.classList.add('photo');
-        img.src = imageUrl;
-        img.alt = `Camera ${device_id}`;
-        img.addEventListener("click", () => {
-            const cameraUrl = `https://cctv.austinmobility.io/publicportal/device/${device_id}`;
-            window.open(cameraUrl, "_blank");
-        });
+  .step-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 28px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+  }
+  .step-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+  }
+  .step-item:first-child { border-radius: 4px 0 0 4px; }
+  .step-item:last-child { border-radius: 0 4px 4px 0; }
+  .step-item.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+  .step-item.done { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+  .step-num {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700;
+  }
+  .step-item.active .step-num { background: var(--accent); color: #fff; }
+  .step-item.done .step-num { background: var(--green); color: #000; }
+  .step-arrow {
+    width: 0; height: 0;
+    border-top: 16px solid transparent;
+    border-bottom: 16px solid transparent;
+    border-left: 10px solid var(--border);
+    margin: 0 -1px;
+    z-index: 1;
+    flex-shrink: 0;
+  }
 
-        photoContainer.appendChild(img);
-        container.appendChild(photoContainer);
-    });
-}
+  .grid-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
 
-async function refreshData() {
-    try {
-        const data = await fetchData();
-        displayImages(data);
-    } catch (error) {
-        console.error('Error fetching data:', error);
+  .connector-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 18px 16px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .connector-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transition: transform 0.2s ease;
+    transform-origin: left;
+  }
+  .connector-card:hover {
+    border-color: var(--accent);
+    background: var(--bg-elevated);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(255,107,53,0.1);
+  }
+  .connector-card:hover::before { transform: scaleX(1); }
+  .connector-card.selected {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+  .connector-card.selected::before { transform: scaleX(1); }
+
+  .card-icon {
+    font-size: 28px;
+    margin-bottom: 10px;
+    display: block;
+  }
+  .card-title {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--text-primary);
+    text-transform: uppercase;
+  }
+  .card-subtitle {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 3px;
+    letter-spacing: 0.05em;
+  }
+  .card-pin-badge {
+    position: absolute;
+    top: 10px; right: 10px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 2px 7px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    letter-spacing: 0.05em;
+  }
+
+  /* ── DEVICE SELECTION ─────────────────────────────────────── */
+  .device-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+  }
+
+  .device-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .device-card:hover {
+    border-color: var(--blue);
+    background: var(--bg-elevated);
+    box-shadow: 0 4px 20px rgba(74,158,255,0.1);
+  }
+  .device-card.selected {
+    border-color: var(--blue);
+    background: var(--blue-dim);
+  }
+
+  .device-card-manufacturer {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--blue);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 4px;
+  }
+  .device-card-name {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+  }
+  .device-card-desc {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 5px;
+  }
+  .device-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 10px;
+  }
+  .tag {
+    padding: 2px 7px;
+    border-radius: 3px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+  }
+
+  /* ── BUTTONS ─────────────────────────────────────────────── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s ease;
+    line-height: 1;
+  }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: #ff7d4d;
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+
+  .btn-secondary {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    border-color: var(--border-bright);
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background: var(--bg-card);
+    border-color: var(--text-secondary);
+  }
+
+  .btn-success {
+    background: var(--green);
+    color: #000;
+    border-color: var(--green);
+  }
+  .btn-success:hover:not(:disabled) {
+    background: #4de066;
+    box-shadow: 0 0 20px rgba(57,211,83,0.4);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-secondary);
+    border-color: var(--border);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    color: var(--text-primary);
+    border-color: var(--border-bright);
+  }
+
+  .btn-lg {
+    padding: 14px 28px;
+    font-size: 14px;
+  }
+
+  .action-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── WIRING SCREEN ───────────────────────────────────────── */
+  #screen-wiring {
+    display: none;
+  }
+  #screen-wiring.active {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    grid-template-rows: auto 1fr auto;
+    gap: 16px;
+    min-height: calc(100vh - 56px - 48px);
+  }
+
+  .wiring-header {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+
+  .wiring-header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .wiring-device-info {
+    line-height: 1.3;
+  }
+  .wiring-device-name {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-primary);
+  }
+  .wiring-connector-name {
+    font-size: 11px;
+    color: var(--text-secondary);
+    letter-spacing: 0.08em;
+  }
+
+  .mode-badge {
+    padding: 5px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .mode-build { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent); }
+  .mode-verify { background: var(--yellow-dim); color: var(--yellow); border: 1px solid var(--yellow); }
+
+  /* Progress */
+  .progress-container {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 280px;
+  }
+  .progress-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    letter-spacing: 0.05em;
+  }
+  .progress-bar-wrap {
+    flex: 1;
+    height: 6px;
+    background: var(--bg-elevated);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #ff8c5a);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+  }
+  .progress-bar-fill.verify { background: linear-gradient(90deg, var(--yellow), #f5d580); }
+  .progress-pct {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    min-width: 36px;
+    text-align: right;
+  }
+  .progress-pct.verify { color: var(--yellow); }
+
+  /* Connector Diagram Panel */
+  .diagram-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .panel-header {
+    padding: 10px 14px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .panel-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .diagram-view-toggle {
+    display: flex;
+    gap: 4px;
+  }
+  .view-btn {
+    padding: 3px 10px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    border-radius: 3px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    transition: all 0.1s;
+  }
+  .view-btn.active {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    border-color: var(--border-bright);
+  }
+
+  .diagram-canvas-wrap {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    cursor: grab;
+    user-select: none;
+  }
+  .diagram-canvas-wrap:active { cursor: grabbing; }
+
+  #connector-svg-container {
+    width: 100%;
+    height: 100%;
+    min-height: 350px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    transition: transform 0.1s;
+    transform-origin: center center;
+  }
+
+  .zoom-controls {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .zoom-btn {
+    width: 28px; height: 28px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-secondary);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono);
+    transition: all 0.1s;
+  }
+  .zoom-btn:hover { color: var(--text-primary); border-color: var(--border-bright); background: var(--bg-card); }
+
+  /* Instruction Panel */
+  .instruction-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .pin-spotlight {
+    padding: 20px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .pin-number-display {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .pin-num-circle {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: var(--accent-dim);
+    border: 2px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 900;
+    color: var(--accent);
+    flex-shrink: 0;
+    box-shadow: 0 0 20px var(--accent-glow);
+    animation: pin-pulse 2s infinite;
+  }
+
+  .pin-num-circle.verify-mode {
+    background: var(--yellow-dim);
+    border-color: var(--yellow);
+    color: var(--yellow);
+    box-shadow: 0 0 20px rgba(240,192,64,0.4);
+    animation: none;
+  }
+
+  @keyframes pin-pulse {
+    0%, 100% { box-shadow: 0 0 10px var(--accent-glow); }
+    50% { box-shadow: 0 0 30px var(--accent-glow), 0 0 60px rgba(255,107,53,0.2); }
+  }
+
+  .pin-meta { flex: 1; }
+  .pin-meta-label { font-size: 10px; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; }
+  .pin-meta-signal {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+  .pin-meta-signal.nc { color: var(--text-muted); font-size: 16px; }
+
+  .pin-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .pin-detail-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 10px;
+  }
+  .pin-detail-label { font-size: 9px; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 3px; }
+  .pin-detail-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .wire-color-swatch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .color-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+
+  .instruction-notes {
+    padding: 14px;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .instruction-note-item {
+    padding: 10px 12px;
+    background: var(--bg-elevated);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 4px 4px 0;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    line-height: 1.5;
+  }
+  .instruction-note-item.nc { border-color: var(--text-muted); }
+  .instruction-note-item.critical { border-color: var(--red); background: rgba(255,68,68,0.08); color: var(--text-primary); }
+
+  /* Pin list */
+  .pin-list-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .pin-list-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    margin-bottom: 3px;
+    transition: all 0.1s;
+  }
+  .pin-list-item:hover { background: var(--bg-elevated); }
+  .pin-list-item.active {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+  }
+  .pin-list-item.done {
+    background: var(--green-dim);
+    border-color: var(--green);
+  }
+  .pin-list-num {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+  .pin-list-item.active .pin-list-num {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .pin-list-item.done .pin-list-num {
+    background: var(--green);
+    border-color: var(--green);
+    color: #000;
+  }
+  .pin-list-info { flex: 1; min-width: 0; }
+  .pin-list-signal { font-size: 11px; font-weight: 500; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pin-list-item.active .pin-list-signal { color: var(--accent); }
+  .pin-list-item.done .pin-list-signal { color: var(--green); }
+  .pin-list-check {
+    font-size: 12px;
+    color: var(--green);
+    opacity: 0;
+  }
+  .pin-list-item.done .pin-list-check { opacity: 1; }
+
+  /* Nav bar */
+  .nav-bar {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+  .nav-bar-left { display: flex; gap: 8px; }
+  .nav-bar-right { display: flex; gap: 8px; margin-left: auto; }
+
+  /* ── COMPLETE SCREEN ─────────────────────────────────────── */
+  .complete-card {
+    background: var(--bg-card);
+    border: 1px solid var(--green);
+    border-radius: 8px;
+    padding: 48px;
+    text-align: center;
+    max-width: 600px;
+    margin: 60px auto;
+    box-shadow: 0 0 60px rgba(57,211,83,0.1);
+  }
+
+  .complete-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+    display: block;
+    animation: complete-bounce 0.5s ease;
+  }
+
+  @keyframes complete-bounce {
+    0% { transform: scale(0.5); opacity: 0; }
+    70% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .complete-title {
+    font-family: var(--font-display);
+    font-size: 48px;
+    font-weight: 900;
+    color: var(--green);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .complete-subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 32px;
+    letter-spacing: 0.05em;
+  }
+
+  .complete-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .stat-box {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px;
+  }
+  .stat-box-value {
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--green);
+  }
+  .stat-box-label { font-size: 10px; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; }
+
+  .complete-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+  /* ── NO PINOUT MESSAGE ───────────────────────────────────── */
+  .no-pinout-msg {
+    padding: 24px;
+    background: var(--yellow-dim);
+    border: 1px solid var(--yellow);
+    border-radius: 6px;
+    color: var(--yellow);
+    font-size: 13px;
+    line-height: 1.6;
+    margin-top: 12px;
+  }
+
+  /* ── UTILITY ─────────────────────────────────────────────── */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 20px 0;
+  }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    transition: color 0.1s;
+  }
+  .back-link:hover { color: var(--text-primary); }
+
+  /* SVG connector styles */
+  .pin-circle {
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .pin-circle:hover { filter: brightness(1.3); }
+  .pin-label-text { pointer-events: none; }
+  .pin-active-ring {
+    animation: ring-pulse 1.5s infinite;
+  }
+  @keyframes ring-pulse {
+    0%, 100% { opacity: 1; r: 0; }
+    50% { opacity: 0.4; }
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--border-bright); }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    #screen-wiring.active {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto auto auto auto;
     }
-}
+    .diagram-panel { min-height: 300px; }
+  }
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Initial data fetch
-    refreshData();
-
-    // Set up interval to update data every 1 minute (60,000 milliseconds)
-    setInterval(refreshData, 5000);
-});
-    </script>
+  @media (max-width: 600px) {
+    #app-header { padding: 0 14px; }
+    .header-title { font-size: 16px; }
+    .badge-faa { display: none; }
+    #app-main { padding: 14px 12px; }
+    .complete-card { padding: 28px 20px; }
+    .complete-stats { grid-template-columns: 1fr 1fr; }
+  }
+</style>
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <h1>Austin Traffic Cameras</h1>
-        </header>
-        <div class="photo-grid"></div>
+
+<!-- ═══ HEADER ═══════════════════════════════════════════════ -->
+<header id="app-header">
+  <div class="header-logo">
+    <div class="header-logo-icon">W</div>
+    <span class="header-title">Wire<span>Guide</span> Pro</span>
+  </div>
+  <div class="header-right">
+    <span class="badge badge-version">v1.0</span>
+    <span class="badge badge-faa">For Reference Only – Verify per ICA</span>
+  </div>
+</header>
+
+<!-- ═══ MAIN ══════════════════════════════════════════════════ -->
+<main id="app-main">
+
+  <!-- ── SCREEN 1: CONNECTOR SELECTION ──────────────────────── -->
+  <section id="screen-connector" class="screen active">
+    <div class="screen-header">
+      <h1>Select <span>Connector</span></h1>
+      <p>Step 1 of 3 – Choose the connector type for this harness leg</p>
     </div>
+
+    <div class="step-indicator">
+      <div class="step-item active"><span class="step-num">1</span>Connector</div>
+      <div class="step-arrow"></div>
+      <div class="step-item"><span class="step-num">2</span>Device</div>
+      <div class="step-arrow"></div>
+      <div class="step-item"><span class="step-num">3</span>Wire</div>
+    </div>
+
+    <div class="section-label">D-Sub Connectors</div>
+    <div class="grid-cards" id="connector-grid"></div>
+    <div class="divider"></div>
+    <div class="section-label">Circular / Multi-Pin Connectors</div>
+    <div class="grid-cards" id="connector-grid-circular"></div>
+  </section>
+
+  <!-- ── SCREEN 2: DEVICE SELECTION ─────────────────────────── -->
+  <section id="screen-device" class="screen">
+    <div class="back-link" onclick="goToScreen('screen-connector')">← Back to Connector Selection</div>
+    <div class="screen-header">
+      <h1>Select <span>Device</span></h1>
+      <p id="device-screen-subtitle">Step 2 of 3 – Choose the avionics device for this connector</p>
+    </div>
+
+    <div class="step-indicator">
+      <div class="step-item done"><span class="step-num">✓</span>Connector</div>
+      <div class="step-arrow"></div>
+      <div class="step-item active"><span class="step-num">2</span>Device</div>
+      <div class="step-arrow"></div>
+      <div class="step-item"><span class="step-num">3</span>Wire</div>
+    </div>
+
+    <div class="section-label" id="device-list-label">Compatible Devices</div>
+    <div class="device-grid" id="device-grid"></div>
+
+    <div id="no-pinout-warning" class="no-pinout-msg" style="display:none">
+      ⚠ No pinout data found for this combination. You can still proceed and the tool will show empty pin slots. Add pinout data in the <code>PINOUT_DATA</code> object in the JavaScript section.
+    </div>
+
+    <div class="action-bar">
+      <button class="btn btn-primary btn-lg" id="btn-start-wiring" disabled onclick="startWiring()">
+        Start Wiring ➔
+      </button>
+      <span style="font-size:11px; color:var(--text-muted); letter-spacing:0.05em;">Select a device to continue</span>
+    </div>
+  </section>
+
+  <!-- ── SCREEN 3: WIRING ────────────────────────────────────── -->
+  <section id="screen-wiring" class="screen">
+
+    <!-- Header row -->
+    <div class="wiring-header">
+      <div class="wiring-header-left">
+        <div class="wiring-device-info">
+          <div class="wiring-device-name" id="wiring-device-name">GTN 750</div>
+          <div class="wiring-connector-name" id="wiring-connector-name">25-pin D-Sub · P1 Main Connector</div>
+        </div>
+        <span class="mode-badge mode-build" id="mode-badge">BUILD MODE</span>
+      </div>
+
+      <div class="progress-container">
+        <span class="progress-label" id="progress-label">Pin 1 of 25</span>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" id="progress-bar" style="width:0%"></div>
+        </div>
+        <span class="progress-pct" id="progress-pct">0%</span>
+      </div>
+    </div>
+
+    <!-- Connector Diagram -->
+    <div class="diagram-panel">
+      <div class="panel-header">
+        <span class="panel-title">Connector Diagram (Front/Solder View)</span>
+        <div class="diagram-view-toggle">
+          <button class="view-btn active" id="btn-view-front" onclick="setView('front')">Front</button>
+          <button class="view-btn" id="btn-view-rear" onclick="setView('rear')">Rear / Solder</button>
+        </div>
+      </div>
+      <div class="diagram-canvas-wrap" id="diagram-canvas-wrap">
+        <div id="connector-svg-container"></div>
+        <div class="zoom-controls">
+          <button class="zoom-btn" onclick="adjustZoom(0.15)">+</button>
+          <button class="zoom-btn" onclick="adjustZoom(-0.15)">−</button>
+          <button class="zoom-btn" onclick="resetZoom()" title="Reset zoom" style="font-size:11px;">⌂</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Instructions + Pin List -->
+    <div class="instruction-panel">
+      <div class="panel-header">
+        <span class="panel-title">Wiring Instructions</span>
+        <span class="badge badge-version" id="panel-pin-counter">— / —</span>
+      </div>
+
+      <div class="pin-spotlight">
+        <div class="pin-number-display">
+          <div class="pin-num-circle" id="pin-num-circle">1</div>
+          <div class="pin-meta">
+            <div class="pin-meta-label">Signal / Function</div>
+            <div class="pin-meta-signal" id="pin-meta-signal">LOADING...</div>
+          </div>
+        </div>
+        <div class="pin-detail-grid">
+          <div class="pin-detail-item">
+            <div class="pin-detail-label">Wire Color</div>
+            <div class="pin-detail-value wire-color-swatch">
+              <span class="color-dot" id="pin-color-dot" style="background:#888"></span>
+              <span id="pin-color-text">—</span>
+            </div>
+          </div>
+          <div class="pin-detail-item">
+            <div class="pin-detail-label">Wire Gauge</div>
+            <div class="pin-detail-value" id="pin-gauge-text">—</div>
+          </div>
+          <div class="pin-detail-item">
+            <div class="pin-detail-label">Destination</div>
+            <div class="pin-detail-value" id="pin-dest-text" style="font-size:11px;">—</div>
+          </div>
+          <div class="pin-detail-item">
+            <div class="pin-detail-label">Type</div>
+            <div class="pin-detail-value" id="pin-type-text">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="instruction-notes" id="instruction-notes"></div>
+
+      <div class="panel-header" style="border-top: 1px solid var(--border); border-bottom:none; cursor:pointer;" onclick="togglePinList()">
+        <span class="panel-title">All Pins</span>
+        <span style="font-size:11px; color:var(--text-muted);" id="pin-list-toggle-label">▼ Show</span>
+      </div>
+      <div class="pin-list-container" id="pin-list-container" style="display:none; max-height:200px;"></div>
+    </div>
+
+    <!-- Nav bar -->
+    <div class="nav-bar">
+      <div class="nav-bar-left">
+        <button class="btn btn-ghost" onclick="goToScreen('screen-device')">⬡ Change Device</button>
+        <button class="btn btn-secondary" id="btn-prev" onclick="prevPin()">← Prev</button>
+        <button class="btn btn-primary btn-lg" id="btn-next" onclick="nextPin()">Next Pin →</button>
+      </div>
+      <div class="nav-bar-right">
+        <button class="btn btn-ghost" onclick="skipToPin(0)">⤿ Restart</button>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ── SCREEN 4: COMPLETE ─────────────────────────────────── -->
+  <section id="screen-complete" class="screen">
+    <div class="complete-card">
+      <span class="complete-icon">✅</span>
+      <div class="complete-title" id="complete-title">Build Complete</div>
+      <div class="complete-subtitle" id="complete-subtitle">All pins wired for <strong id="complete-device-name">—</strong></div>
+      <div class="complete-stats">
+        <div class="stat-box">
+          <div class="stat-box-value" id="stat-pins">—</div>
+          <div class="stat-box-label">Pins Wired</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-box-value" id="stat-nc">—</div>
+          <div class="stat-box-label">No Connect</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-box-value" id="stat-mode">BUILD</div>
+          <div class="stat-box-label">Mode</div>
+        </div>
+      </div>
+      <div class="complete-actions">
+        <button class="btn btn-success btn-lg" onclick="startDoubleCheck()">🔁 Double-Check (Verify Mode)</button>
+        <button class="btn btn-secondary" onclick="startWiring()">↩ Rebuild Same Connector</button>
+        <button class="btn btn-ghost" onclick="goToScreen('screen-connector')">⬡ New Connector</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ═══ JAVASCRIPT ════════════════════════════════════════════ -->
+<script>
+/* =============================================================
+   WIREGUIDE PRO – Wiring Harness Assistant
+   ---------------------------------------------------------------
+   DATA STRUCTURE GUIDE:
+   ─────────────────────
+   CONNECTORS: Array of connector types available for selection.
+   Each connector has: id, label, pinCount, family, icon, description
+
+   DEVICES: Array of avionics devices.
+   Each device has: id, name, manufacturer, description, tags, connectors[]
+   Each connector in a device: connectorId (must match CONNECTORS id), label,
+     pinout[] (array indexed by pin number, 1-based)
+
+   PINOUT ENTRY per pin:
+   {
+     pin: 1,                    // pin number (required)
+     signal: "RS-232 TX OUT",   // signal name (required)
+     color: "#RRGGBB",          // wire color hex (optional)
+     colorName: "White",        // wire color name (optional)
+     gauge: "22 AWG",           // wire gauge (optional)
+     destination: "GTX 345",    // destination component (optional)
+     type: "RS-232",            // signal type (optional)
+     notes: "Max 25 ft run",    // extra notes (optional)
+     critical: false            // if true, shows red warning note
+   }
+   Use signal: "NC" for no-connect pins.
+=============================================================*/
+
+/* ─────────────────────────────────────────────────────────────
+   CONNECTOR DEFINITIONS
+   Add new connectors here. id must be unique.
+───────────────────────────────────────────────────────────── */
+const CONNECTORS = [
+  // D-Sub family
+  { id: "dsub9",   label: "9-Pin D-Sub",   pinCount: 9,  family: "dsub",     icon: "⬛", description: "DE-9 · Serial / RS-232" },
+  { id: "dsub15",  label: "15-Pin D-Sub",  pinCount: 15, family: "dsub",     icon: "⬛", description: "DA-15 · Video / Multi" },
+  { id: "dsub25",  label: "25-Pin D-Sub",  pinCount: 25, family: "dsub",     icon: "⬛", description: "DB-25 · Primary data" },
+  { id: "dsub37",  label: "37-Pin D-Sub",  pinCount: 37, family: "dsub",     icon: "⬛", description: "DC-37 · Extended I/O" },
+  { id: "dsub50",  label: "50-Pin D-Sub",  pinCount: 50, family: "dsub",     icon: "⬛", description: "DD-50 · High density" },
+  // Circular / Multi-Pin
+  { id: "circ32",  label: "32-Pin Circ.",  pinCount: 32, family: "circular", icon: "⭕", description: "MS3106 type · 32-pin" },
+  { id: "circ40",  label: "40-Pin Circ.",  pinCount: 40, family: "circular", icon: "⭕", description: "40-pin circular" },
+  { id: "circ64",  label: "64-Pin",        pinCount: 64, family: "circular", icon: "⭕", description: "64-pin high-density" },
+];
+
+/* ─────────────────────────────────────────────────────────────
+   DEVICE DEFINITIONS
+   Each device lists which connectors it uses (by connectorId)
+   and the full pinout for each.
+───────────────────────────────────────────────────────────── */
+const DEVICES = [
+
+  /* ──────────────────────────────────────────────────────────
+     GARMIN GTN 750 Xi
+     Main 25-pin connector P1 (simplified representative pinout)
+     Reference: Garmin GTN 625/635/650/725/750 Inst. Manual Rev. V
+  ────────────────────────────────────────────────────────── */
+  {
+    id: "garmin_gtn750",
+    name: "GTN 750 / 750Xi",
+    manufacturer: "Garmin",
+    description: "GPS/NAV/COMM Touch Navigator",
+    tags: ["GPS", "NAV", "COMM", "IFR"],
+    connectors: [
+      {
+        connectorId: "dsub25",
+        label: "P1001 – Main Power / RS-232",
+        pinout: [
+          { pin:1,  signal:"AIRCRAFT POWER 1",   color:"#FF0000", colorName:"Red",          gauge:"22 AWG", destination:"Main Bus",     type:"Power",    notes:"28V DC aircraft power. Verify voltage before wiring.", critical:true },
+          { pin:2,  signal:"AIRCRAFT POWER 2",   color:"#FF6600", colorName:"Red/Orange",   gauge:"22 AWG", destination:"Main Bus",     type:"Power",    notes:"Second power input for redundancy." },
+          { pin:3,  signal:"POWER GROUND",        color:"#000000", colorName:"Black",        gauge:"22 AWG", destination:"Airframe GND", type:"Ground",   notes:"Connect to aircraft airframe ground bus." },
+          { pin:4,  signal:"POWER GROUND",        color:"#000000", colorName:"Black",        gauge:"22 AWG", destination:"Airframe GND", type:"Ground",   notes:"Second ground – do not share with signal ground." },
+          { pin:5,  signal:"DIMMER (LIGHTING BUS)",color:"#FFFF00",colorName:"Yellow",       gauge:"24 AWG", destination:"Lighting Bus", type:"Analog",   notes:"5V–28V analog dimmer input." },
+          { pin:6,  signal:"RS-232 #1 TX",        color:"#FFFFFF", colorName:"White",        gauge:"24 AWG", destination:"Transponder",  type:"RS-232",   notes:"GTN RS-232 Port 1 Transmit Out." },
+          { pin:7,  signal:"RS-232 #1 RX",        color:"#00FF00", colorName:"Green",        gauge:"24 AWG", destination:"Transponder",  type:"RS-232",   notes:"GTN RS-232 Port 1 Receive In." },
+          { pin:8,  signal:"RS-232 #2 TX",        color:"#FFFFFF", colorName:"White/Blue",   gauge:"24 AWG", destination:"Autopilot",    type:"RS-232",   notes:"GTN RS-232 Port 2 Transmit Out." },
+          { pin:9,  signal:"RS-232 #2 RX",        color:"#00AAFF", colorName:"Blue/White",   gauge:"24 AWG", destination:"Autopilot",    type:"RS-232",   notes:"GTN RS-232 Port 2 Receive In." },
+          { pin:10, signal:"RS-232 #3 TX",        color:"#FFFFFF", colorName:"White/Green",  gauge:"24 AWG", destination:"WX Receiver",  type:"RS-232",   notes:"GTN RS-232 Port 3 Transmit Out." },
+          { pin:11, signal:"RS-232 #3 RX",        color:"#00FF00", colorName:"Green/White",  gauge:"24 AWG", destination:"WX Receiver",  type:"RS-232",   notes:"GTN RS-232 Port 3 Receive In." },
+          { pin:12, signal:"ARINC 429 OUT A",     color:"#FF00FF", colorName:"Pink/Violet",  gauge:"24 AWG", destination:"FMS/Autopilot",type:"ARINC-429",notes:"High-speed ARINC 429 output, twisted pair with pin 13." },
+          { pin:13, signal:"ARINC 429 OUT B",     color:"#FF00AA", colorName:"Pink",         gauge:"24 AWG", destination:"FMS/Autopilot",type:"ARINC-429",notes:"Twisted pair with pin 12. Maintain twist." },
+          { pin:14, signal:"ARINC 429 IN 1 A",    color:"#AAFFAA", colorName:"Lt Green",     gauge:"24 AWG", destination:"ADC/AHRS",     type:"ARINC-429",notes:"ARINC 429 input bus 1, twisted pair with pin 15." },
+          { pin:15, signal:"ARINC 429 IN 1 B",    color:"#AAFFCC", colorName:"Lt Green/Wht", gauge:"24 AWG", destination:"ADC/AHRS",     type:"ARINC-429",notes:"Twisted pair with pin 14. Maintain twist." },
+          { pin:16, signal:"ARINC 429 IN 2 A",    color:"#FFAAAA", colorName:"Lt Red",       gauge:"24 AWG", destination:"FMS",          type:"ARINC-429",notes:"ARINC 429 input bus 2." },
+          { pin:17, signal:"ARINC 429 IN 2 B",    color:"#FFCCAA", colorName:"Lt Red/Wht",   gauge:"24 AWG", destination:"FMS",          type:"ARINC-429",notes:"Twisted pair with pin 16. Maintain twist." },
+          { pin:18, signal:"EXTERNAL ANNUNCIATOR", color:"#FF6600", colorName:"Orange",      gauge:"24 AWG", destination:"Annunc. Panel",type:"Discrete", notes:"Active low output. Connect to annunciator light." },
+          { pin:19, signal:"OBS RESOLVER A",      color:"#AAAAFF", colorName:"Lt Blue",      gauge:"24 AWG", destination:"HSI/CDI",      type:"Resolver", notes:"OBS heading input from resolver. Twisted pair." },
+          { pin:20, signal:"OBS RESOLVER B",      color:"#8888FF", colorName:"Lt Blue/Wht",  gauge:"24 AWG", destination:"HSI/CDI",      type:"Resolver", notes:"Twisted pair with pin 19." },
+          { pin:21, signal:"HEADING SELECT IN",   color:"#AAAAAA", colorName:"Gray",         gauge:"24 AWG", destination:"Autopilot",    type:"Discrete", notes:"Heading select input." },
+          { pin:22, signal:"ALERT OUTPUT",        color:"#FF0000", colorName:"Red/White",    gauge:"24 AWG", destination:"Cockpit Alert",type:"Discrete", notes:"Active low. Connect alert device." },
+          { pin:23, signal:"NC",                  color:"#333333", colorName:"—",            gauge:"—",      destination:"—",            type:"NC",       notes:"No connection. Leave unterminated." },
+          { pin:24, signal:"NC",                  color:"#333333", colorName:"—",            gauge:"—",      destination:"—",            type:"NC",       notes:"No connection. Leave unterminated." },
+          { pin:25, signal:"SIGNAL GROUND",       color:"#000000", colorName:"Black",        gauge:"24 AWG", destination:"Signal GND",   type:"Ground",   notes:"Signal ground. Keep separate from power ground." },
+        ]
+      }
+    ]
+  },
+
+  /* ──────────────────────────────────────────────────────────
+     GARMIN GTN 650 Xi
+     15-pin D-Sub P1
+  ────────────────────────────────────────────────────────── */
+  {
+    id: "garmin_gtn650",
+    name: "GTN 650 / 650Xi",
+    manufacturer: "Garmin",
+    description: "GPS/NAV/COMM Touch Navigator",
+    tags: ["GPS", "NAV", "COMM", "IFR"],
+    connectors: [
+      {
+        connectorId: "dsub15",
+        label: "P1001 – Power & Audio",
+        pinout: [
+          { pin:1,  signal:"AIRCRAFT POWER",   color:"#FF0000", colorName:"Red",       gauge:"22 AWG", destination:"Main Bus",     type:"Power",  notes:"28V DC primary power input.", critical:true },
+          { pin:2,  signal:"POWER GROUND",     color:"#000000", colorName:"Black",     gauge:"22 AWG", destination:"Airframe GND", type:"Ground", notes:"Connect to airframe ground bus." },
+          { pin:3,  signal:"RS-232 TX",        color:"#FFFFFF", colorName:"White",     gauge:"24 AWG", destination:"Transponder",  type:"RS-232", notes:"RS-232 Port 1 Transmit Out." },
+          { pin:4,  signal:"RS-232 RX",        color:"#00FF00", colorName:"Green",     gauge:"24 AWG", destination:"Transponder",  type:"RS-232", notes:"RS-232 Port 1 Receive In." },
+          { pin:5,  signal:"AUDIO OUT HI",     color:"#FF00FF", colorName:"Purple",    gauge:"24 AWG", destination:"Audio Panel",  type:"Audio",  notes:"Intercom/audio output, high side. Twisted pair." },
+          { pin:6,  signal:"AUDIO OUT LO",     color:"#AA00FF", colorName:"Violet",    gauge:"24 AWG", destination:"Audio Panel",  type:"Audio",  notes:"Twisted pair with pin 5." },
+          { pin:7,  signal:"DIMMER",           color:"#FFFF00", colorName:"Yellow",    gauge:"24 AWG", destination:"Lighting Bus", type:"Analog", notes:"Lighting bus dimmer input." },
+          { pin:8,  signal:"ARINC 429 OUT A",  color:"#FF88FF", colorName:"Pink",      gauge:"24 AWG", destination:"Autopilot",    type:"ARINC",  notes:"ARINC 429 output, twisted pair with pin 9." },
+          { pin:9,  signal:"ARINC 429 OUT B",  color:"#FF88CC", colorName:"Pink/Wht",  gauge:"24 AWG", destination:"Autopilot",    type:"ARINC",  notes:"Twisted pair with pin 8." },
+          { pin:10, signal:"ARINC 429 IN A",   color:"#AAFFAA", colorName:"Lt Green",  gauge:"24 AWG", destination:"ADC",          type:"ARINC",  notes:"ARINC 429 input, twisted pair with pin 11." },
+          { pin:11, signal:"ARINC 429 IN B",   color:"#CCFFCC", colorName:"Lt Green/W",gauge:"24 AWG", destination:"ADC",          type:"ARINC",  notes:"Twisted pair with pin 10." },
+          { pin:12, signal:"ALERT OUTPUT",     color:"#FF6600", colorName:"Orange",    gauge:"24 AWG", destination:"Annunciator",  type:"Discrete",notes:"Active low alert output." },
+          { pin:13, signal:"HEADING INPUT",    color:"#AAAAAA", colorName:"Gray",      gauge:"24 AWG", destination:"Autopilot",    type:"Discrete",notes:"Heading select discrete input." },
+          { pin:14, signal:"SIGNAL GROUND",    color:"#000000", colorName:"Black",     gauge:"24 AWG", destination:"Signal GND",   type:"Ground", notes:"Signal reference ground." },
+          { pin:15, signal:"NC",               color:"#333333", colorName:"—",         gauge:"—",      destination:"—",            type:"NC",     notes:"No connection." },
+        ]
+      }
+    ]
+  },
+
+  /* ──────────────────────────────────────────────────────────
+     GARMIN GNS 430W
+     25-pin D-Sub P1
+  ────────────────────────────────────────────────────────── */
+  {
+    id: "garmin_gns430w",
+    name: "GNS 430W",
+    manufacturer: "Garmin",
+    description: "GPS/NAV/COMM (legacy) – WAAS",
+    tags: ["GPS", "NAV", "COMM", "Legacy"],
+    connectors: [
+      {
+        connectorId: "dsub25",
+        label: "P4001 – Main Connector",
+        pinout: [
+          { pin:1,  signal:"AIRCRAFT POWER",    color:"#FF0000", colorName:"Red",         gauge:"22 AWG", destination:"Main Bus",     type:"Power",    notes:"14/28V DC. Confirm voltage.", critical:true },
+          { pin:2,  signal:"POWER GROUND",      color:"#000000", colorName:"Black",       gauge:"22 AWG", destination:"Airframe GND", type:"Ground",   notes:"Primary power ground." },
+          { pin:3,  signal:"RS-232 #1 TX",      color:"#FFFFFF", colorName:"White",       gauge:"24 AWG", destination:"GTX Xpdr",     type:"RS-232",   notes:"Serial port 1 output." },
+          { pin:4,  signal:"RS-232 #1 RX",      color:"#00FF00", colorName:"Green",       gauge:"24 AWG", destination:"GTX Xpdr",     type:"RS-232",   notes:"Serial port 1 input." },
+          { pin:5,  signal:"RS-232 #2 TX",      color:"#AAAAFF", colorName:"Lt Blue",     gauge:"24 AWG", destination:"Autopilot",    type:"RS-232",   notes:"Serial port 2 output." },
+          { pin:6,  signal:"RS-232 #2 RX",      color:"#0000FF", colorName:"Blue",        gauge:"24 AWG", destination:"Autopilot",    type:"RS-232",   notes:"Serial port 2 input." },
+          { pin:7,  signal:"ARINC 429 OUT A",   color:"#FF00FF", colorName:"Purple",      gauge:"24 AWG", destination:"FMS",          type:"ARINC-429",notes:"Twisted pair with pin 8." },
+          { pin:8,  signal:"ARINC 429 OUT B",   color:"#FF88FF", colorName:"Violet",      gauge:"24 AWG", destination:"FMS",          type:"ARINC-429",notes:"Twisted pair with pin 7." },
+          { pin:9,  signal:"ARINC 429 IN A",    color:"#AAFFAA", colorName:"Lt Green",    gauge:"24 AWG", destination:"ADC/AHRS",     type:"ARINC-429",notes:"Twisted pair with pin 10." },
+          { pin:10, signal:"ARINC 429 IN B",    color:"#CCFFAA", colorName:"Lt Green/Wht",gauge:"24 AWG", destination:"ADC/AHRS",     type:"ARINC-429",notes:"Twisted pair with pin 9." },
+          { pin:11, signal:"NAV AUDIO HI",      color:"#FF6600", colorName:"Orange",      gauge:"24 AWG", destination:"Audio Panel",  type:"Audio",    notes:"NAV audio output high side." },
+          { pin:12, signal:"NAV AUDIO LO",      color:"#FFAA00", colorName:"Yellow",      gauge:"24 AWG", destination:"Audio Panel",  type:"Audio",    notes:"NAV audio output low side." },
+          { pin:13, signal:"COMM AUDIO HI",     color:"#00FFFF", colorName:"Cyan",        gauge:"24 AWG", destination:"Audio Panel",  type:"Audio",    notes:"COMM audio output high side." },
+          { pin:14, signal:"COMM AUDIO LO",     color:"#00AAAA", colorName:"Dk Cyan",     gauge:"24 AWG", destination:"Audio Panel",  type:"Audio",    notes:"COMM audio output low side." },
+          { pin:15, signal:"MIC AUDIO HI",      color:"#FF88AA", colorName:"Pink",        gauge:"24 AWG", destination:"PTT/MIC",      type:"Audio",    notes:"Microphone input high side." },
+          { pin:16, signal:"MIC AUDIO LO",      color:"#FFAACC", colorName:"Lt Pink",     gauge:"24 AWG", destination:"PTT/MIC",      type:"Audio",    notes:"Microphone input low side." },
+          { pin:17, signal:"SQUELCH DISABLE",   color:"#AAAAAA", colorName:"Gray",        gauge:"24 AWG", destination:"Audio Panel",  type:"Discrete", notes:"Active low. Ground to disable squelch." },
+          { pin:18, signal:"GPS ANNUNCIATOR",   color:"#FF0000", colorName:"Red/White",   gauge:"24 AWG", destination:"Annunc Panel", type:"Discrete", notes:"Active low GPS annunciator output." },
+          { pin:19, signal:"DIMMER",            color:"#FFFF00", colorName:"Yellow",      gauge:"24 AWG", destination:"Lighting Bus", type:"Analog",   notes:"5V–28V dimmer input." },
+          { pin:20, signal:"OBS HEADING SYNC",  color:"#AAAAFF", colorName:"Blue/White",  gauge:"24 AWG", destination:"HSI",          type:"Discrete", notes:"OBS sync signal." },
+          { pin:21, signal:"NC",                color:"#333333", colorName:"—",           gauge:"—",      destination:"—",            type:"NC",       notes:"No connection." },
+          { pin:22, signal:"NC",                color:"#333333", colorName:"—",           gauge:"—",      destination:"—",            type:"NC",       notes:"No connection." },
+          { pin:23, signal:"NC",                color:"#333333", colorName:"—",           gauge:"—",      destination:"—",            type:"NC",       notes:"No connection." },
+          { pin:24, signal:"SIGNAL GROUND",     color:"#000000", colorName:"Black",       gauge:"24 AWG", destination:"Signal GND",   type:"Ground",   notes:"Signal reference ground – keep isolated from power ground." },
+          { pin:25, signal:"CHASSIS GROUND",    color:"#000000", colorName:"Black",       gauge:"22 AWG", destination:"Airframe GND", type:"Ground",   notes:"Unit chassis ground for shielding." },
+        ]
+      }
+    ]
+  },
+
+  /* ──────────────────────────────────────────────────────────
+     GARMIN G3X TOUCH (GMU 11 magnetometer example)
+     9-pin connector
+  ────────────────────────────────────────────────────────── */
+  {
+    id: "garmin_g3x",
+    name: "G3X Touch (GMU 11)",
+    manufacturer: "Garmin",
+    description: "EFIS – GMU 11 Magnetometer Connector",
+    tags: ["EFIS", "EXP", "GMU"],
+    connectors: [
+      {
+        connectorId: "dsub9",
+        label: "P201 – GMU Magnetometer",
+        pinout: [
+          { pin:1, signal:"CAN BUS HI",     color:"#FFFF00", colorName:"Yellow",       gauge:"24 AWG", destination:"GDU/GEA",    type:"CAN",    notes:"CAN bus high – twisted pair with pin 6." },
+          { pin:2, signal:"SYSTEM POWER",   color:"#FF0000", colorName:"Red",          gauge:"22 AWG", destination:"Main Bus",   type:"Power",  notes:"12/24V power input.", critical:true },
+          { pin:3, signal:"POWER GROUND",   color:"#000000", colorName:"Black",        gauge:"22 AWG", destination:"Airframe GND",type:"Ground",notes:"Ground." },
+          { pin:4, signal:"RS-485 TX+",     color:"#FFFFFF", colorName:"White",        gauge:"24 AWG", destination:"GDU",        type:"RS-485", notes:"RS-485 positive transmit – twisted pair with pin 5." },
+          { pin:5, signal:"RS-485 TX–",     color:"#AAAAAA", colorName:"Gray",         gauge:"24 AWG", destination:"GDU",        type:"RS-485", notes:"RS-485 negative transmit." },
+          { pin:6, signal:"CAN BUS LO",     color:"#00FF00", colorName:"Green",        gauge:"24 AWG", destination:"GDU/GEA",    type:"CAN",    notes:"CAN bus low – twisted pair with pin 1." },
+          { pin:7, signal:"NC",             color:"#333333", colorName:"—",            gauge:"—",      destination:"—",          type:"NC",     notes:"No connection." },
+          { pin:8, signal:"NC",             color:"#333333", colorName:"—",            gauge:"—",      destination:"—",          type:"NC",     notes:"No connection." },
+          { pin:9, signal:"SIGNAL GROUND",  color:"#000000", colorName:"Black",        gauge:"24 AWG", destination:"Signal GND", type:"Ground", notes:"CAN/RS-485 signal ground reference." },
+        ]
+      }
+    ]
+  },
+
+  /* ──────────────────────────────────────────────────────────
+     ASPEN EFD1000
+     25-pin D-Sub
+  ────────────────────────────────────────────────────────── */
+  {
+    id: "aspen_efd1000",
+    name: "EFD1000 Pro",
+    manufacturer: "Aspen Avionics",
+    description: "Electronic Flight Display – Primary",
+    tags: ["EFIS", "PFD", "IFR"],
+    connectors: [
+      {
+        connectorId: "dsub25",
+        label: "J1 – Primary Connector",
+        pinout: [
+          { pin:1,  signal:"AIRCRAFT POWER",    color:"#FF0000", colorName:"Red",         gauge:"22 AWG", destination:"Essential Bus",type:"Power",   notes:"14/28V. Use essential bus.", critical:true },
+          { pin:2,  signal:"POWER GROUND",      color:"#000000", colorName:"Black",       gauge:"22 AWG", destination:"Airframe GND", type:"Ground",  notes:"Primary power ground." },
+          { pin:3,  signal:"RS-232 #1 TX",      color:"#FFFFFF", colorName:"White",       gauge:"24 AWG", destination:"GPS Navigator",type:"RS-232",  notes:"EFD RS-232 port 1 output." },
+          { pin:4,  signal:"RS-232 #1 RX",      color:"#00FF00", colorName:"Green",       gauge:"24 AWG", destination:"GPS Navigator",type:"RS-232",  notes:"EFD RS-232 port 1 input." },
+          { pin:5,  signal:"RS-232 #2 TX",      color:"#AAAAFF", colorName:"Lt Blue",     gauge:"24 AWG", destination:"Traffic Sys",  type:"RS-232",  notes:"EFD RS-232 port 2 output." },
+          { pin:6,  signal:"RS-232 #2 RX",      color:"#0000FF", colorName:"Blue",        gauge:"24 AWG", destination:"Traffic Sys",  type:"RS-232",  notes:"EFD RS-232 port 2 input." },
+          { pin:7,  signal:"ARINC 429 IN 1 A",  color:"#AAFFAA", colorName:"Lt Green",    gauge:"24 AWG", destination:"VOR/ILS/GPS",  type:"ARINC",   notes:"ARINC 429 input bus 1 high." },
+          { pin:8,  signal:"ARINC 429 IN 1 B",  color:"#CCFFAA", colorName:"Lt Green/Wht",gauge:"24 AWG", destination:"VOR/ILS/GPS",  type:"ARINC",   notes:"ARINC 429 input bus 1 low – twisted pair." },
+          { pin:9,  signal:"ARINC 429 IN 2 A",  color:"#FFAAAA", colorName:"Lt Red",      gauge:"24 AWG", destination:"Autopilot",    type:"ARINC",   notes:"ARINC 429 input bus 2 high." },
+          { pin:10, signal:"ARINC 429 IN 2 B",  color:"#FFCCAA", colorName:"Lt Red/Wht",  gauge:"24 AWG", destination:"Autopilot",    type:"ARINC",   notes:"ARINC 429 input bus 2 low – twisted pair." },
+          { pin:11, signal:"HEADING BUS A",     color:"#FF00FF", colorName:"Purple",      gauge:"24 AWG", destination:"HSI/DG",       type:"Synchro",notes:"Heading synchro A." },
+          { pin:12, signal:"HEADING BUS B",     color:"#FF88FF", colorName:"Violet",      gauge:"24 AWG", destination:"HSI/DG",       type:"Synchro",notes:"Heading synchro B." },
+          { pin:13, signal:"HEADING BUS C",     color:"#FF44FF", colorName:"Lt Purple",   gauge:"24 AWG", destination:"HSI/DG",       type:"Synchro",notes:"Heading synchro C." },
+          { pin:14, signal:"BARO IN",           color:"#FFFF00", colorName:"Yellow",      gauge:"24 AWG", destination:"Baro Encoder", type:"Discrete",notes:"Baro altitude input from encoder." },
+          { pin:15, signal:"DIMMER",            color:"#FFAA00", colorName:"Amber",       gauge:"24 AWG", destination:"Lighting Bus", type:"Analog", notes:"Lighting bus dim input." },
+          { pin:16, signal:"ANNUNCIATOR OUT",   color:"#FF6600", colorName:"Orange",      gauge:"24 AWG", destination:"Annunc Panel", type:"Discrete",notes:"AHRS failure annunciator." },
+          { pin:17, signal:"PITOT AIR",         color:"#AAAAAA", colorName:"Gray",        gauge:"24 AWG", destination:"Pitot Heater", type:"Discrete",notes:"Pitot heat status input – optional." },
+          { pin:18, signal:"OAT PROBE",         color:"#00FFFF", colorName:"Cyan",        gauge:"24 AWG", destination:"OAT Probe",    type:"Temp",   notes:"Outside air temp probe input." },
+          { pin:19, signal:"OAT GROUND",        color:"#000000", colorName:"Black",       gauge:"24 AWG", destination:"OAT Probe",    type:"Ground", notes:"OAT probe signal return." },
+          { pin:20, signal:"ILS LOCALIZER IN",  color:"#AAFFFF", colorName:"Lt Cyan",     gauge:"24 AWG", destination:"VOR/ILS Rcvr", type:"Nav",    notes:"ILS localizer input." },
+          { pin:21, signal:"ILS GLIDESLOPE IN", color:"#AACCFF", colorName:"Lt Blue/Grn", gauge:"24 AWG", destination:"VOR/ILS Rcvr", type:"Nav",    notes:"ILS glideslope input." },
+          { pin:22, signal:"NC",                color:"#333333", colorName:"—",           gauge:"—",      destination:"—",            type:"NC",     notes:"No connection." },
+          { pin:23, signal:"NC",                color:"#333333", colorName:"—",           gauge:"—",      destination:"—",            type:"NC",     notes:"No connection." },
+          { pin:24, signal:"NC",                color:"#333333", colorName:"—",           gauge:"—",      destination:"—",            type:"NC",     notes:"No connection." },
+          { pin:25, signal:"SIGNAL GROUND",     color:"#000000", colorName:"Black",       gauge:"24 AWG", destination:"Signal GND",   type:"Ground", notes:"Signal and shield ground reference." },
+        ]
+      }
+    ]
+  },
+
+  /* ──────────────────────────────────────────────────────────
+     GARMIN GTX 345 ADS-B Transponder
+     9-pin D-Sub
+  ────────────────────────────────────────────────────────── */
+  {
+    id: "garmin_gtx345",
+    name: "GTX 345 / 345R",
+    manufacturer: "Garmin",
+    description: "ADS-B In/Out Transponder",
+    tags: ["ADS-B", "XPDR", "IFR"],
+    connectors: [
+      {
+        connectorId: "dsub9",
+        label: "P3451 – Main Connector",
+        pinout: [
+          { pin:1, signal:"AIRCRAFT POWER",  color:"#FF0000", colorName:"Red",     gauge:"22 AWG", destination:"Avionics Bus",  type:"Power",  notes:"28V DC avionics bus power.", critical:true },
+          { pin:2, signal:"POWER GROUND",    color:"#000000", colorName:"Black",   gauge:"22 AWG", destination:"Airframe GND", type:"Ground", notes:"Power ground." },
+          { pin:3, signal:"RS-232 RX",       color:"#00FF00", colorName:"Green",   gauge:"24 AWG", destination:"GTN 750",      type:"RS-232", notes:"Receive from GPS navigator." },
+          { pin:4, signal:"RS-232 TX",       color:"#FFFFFF", colorName:"White",   gauge:"24 AWG", destination:"GTN 750",      type:"RS-232", notes:"Transmit to GPS navigator." },
+          { pin:5, signal:"ALT ENCODER D1",  color:"#AAAAFF", colorName:"Lt Blue", gauge:"24 AWG", destination:"Alt Encoder",  type:"Gray Code",notes:"Altitude encoder bit D1." },
+          { pin:6, signal:"ALT ENCODER D2",  color:"#8888FF", colorName:"Blue",    gauge:"24 AWG", destination:"Alt Encoder",  type:"Gray Code",notes:"Altitude encoder bit D2." },
+          { pin:7, signal:"IDENT BUTTON",    color:"#FFAA00", colorName:"Amber",   gauge:"24 AWG", destination:"IDNT Button",  type:"Discrete",notes:"Panel ident button, active low." },
+          { pin:8, signal:"DIMMER",          color:"#FFFF00", colorName:"Yellow",  gauge:"24 AWG", destination:"Lighting Bus", type:"Analog", notes:"Panel dimmer input." },
+          { pin:9, signal:"SIGNAL GROUND",   color:"#000000", colorName:"Black",   gauge:"24 AWG", destination:"Signal GND",   type:"Ground", notes:"Signal reference ground." },
+        ]
+      }
+    ]
+  },
+
+];
+
+
+/* =============================================================
+   WIRE COLOR CSS MAP
+   Maps colorName strings to CSS hex for the dot swatch
+============================================================= */
+const WIRE_COLORS = {
+  "Red": "#e03030",
+  "Black": "#1a1a1a",
+  "White": "#f0f0f0",
+  "Green": "#22cc44",
+  "Blue": "#2266ff",
+  "Yellow": "#ffdd00",
+  "Orange": "#ff7700",
+  "Gray": "#888888",
+  "Purple": "#9900cc",
+  "Violet": "#7733cc",
+  "Pink": "#ff88cc",
+  "Cyan": "#00cccc",
+  "Amber": "#ffaa00",
+  "—": "#333333",
+};
+
+/* =============================================================
+   D-SUB CONNECTOR PIN LAYOUT DEFINITIONS
+   Used by the SVG renderer.
+   rowLayout: array of pin counts per row (top to bottom)
+              Matches standard D-Sub numbering.
+============================================================= */
+const DSUB_LAYOUTS = {
+  9:  { rows: [[5],[4]] },
+  15: { rows: [[8],[7]] },
+  25: { rows: [[13],[12]] },
+  37: { rows: [[19],[18]] },
+  50: { rows: [[17],[16],[17]] },
+};
+
+/* ─────────────────────────────────────────────────────────────
+   APP STATE
+───────────────────────────────────────────────────────────── */
+const state = {
+  selectedConnector: null,
+  selectedDevice: null,
+  selectedDeviceConnector: null, // the device's connector entry
+  currentPinIndex: 0,
+  isVerifyMode: false,
+  viewMode: 'front', // 'front' or 'rear'
+  zoom: 1,
+  panX: 0,
+  panY: 0,
+  isPanning: false,
+  lastPanX: 0,
+  lastPanY: 0,
+};
+
+/* ─────────────────────────────────────────────────────────────
+   SCREEN NAVIGATION
+───────────────────────────────────────────────────────────── */
+function goToScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+  // Restore wiring screen grid display
+  if (id === 'screen-wiring') {
+    el.style.display = 'grid';
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SCREEN 1: CONNECTOR SELECTION
+───────────────────────────────────────────────────────────── */
+function buildConnectorGrid() {
+  const dsubGrid = document.getElementById('connector-grid');
+  const circGrid = document.getElementById('connector-grid-circular');
+  dsubGrid.innerHTML = '';
+  circGrid.innerHTML = '';
+
+  CONNECTORS.forEach(conn => {
+    const card = document.createElement('div');
+    card.className = 'connector-card';
+    card.innerHTML = `
+      <span class="card-pin-badge">${conn.pinCount}-pin</span>
+      <span class="card-icon">${conn.icon}</span>
+      <div class="card-title">${conn.label}</div>
+      <div class="card-subtitle">${conn.description}</div>
+    `;
+    card.onclick = () => selectConnector(conn.id);
+    if (conn.family === 'dsub') {
+      dsubGrid.appendChild(card);
+    } else {
+      circGrid.appendChild(card);
+    }
+  });
+}
+
+function selectConnector(id) {
+  state.selectedConnector = CONNECTORS.find(c => c.id === id);
+  // Highlight selected
+  document.querySelectorAll('.connector-card').forEach(c => c.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+
+  // Move to device screen after brief delay
+  setTimeout(() => {
+    buildDeviceGrid();
+    goToScreen('screen-device');
+  }, 200);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SCREEN 2: DEVICE SELECTION
+───────────────────────────────────────────────────────────── */
+function buildDeviceGrid() {
+  const conn = state.selectedConnector;
+  const grid = document.getElementById('device-grid');
+  grid.innerHTML = '';
+  document.getElementById('device-screen-subtitle').textContent =
+    `Step 2 of 3 – Devices compatible with ${conn.label}`;
+  document.getElementById('device-list-label').textContent =
+    `Devices for ${conn.label}`;
+
+  // Filter devices that have a connector matching the selected connector id
+  const compatible = DEVICES.filter(d =>
+    d.connectors.some(c => c.connectorId === conn.id)
+  );
+
+  if (compatible.length === 0) {
+    grid.innerHTML = `<div style="color:var(--text-muted); font-size:13px; padding:20px;">
+      No devices found for this connector type. Check PINOUT_DATA or add a new device.</div>`;
+    return;
+  }
+
+  compatible.forEach(device => {
+    const dc = device.connectors.find(c => c.connectorId === conn.id);
+    const card = document.createElement('div');
+    card.className = 'device-card';
+    card.innerHTML = `
+      <div class="device-card-manufacturer">${device.manufacturer}</div>
+      <div class="device-card-name">${device.name}</div>
+      <div class="device-card-desc">${device.description}</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:6px;letter-spacing:.04em;">${dc.label}</div>
+      <div class="device-card-tags">${device.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+    `;
+    card.onclick = () => selectDevice(device.id, card);
+    grid.appendChild(card);
+  });
+}
+
+function selectDevice(id, cardEl) {
+  state.selectedDevice = DEVICES.find(d => d.id === id);
+  state.selectedDeviceConnector = state.selectedDevice.connectors.find(
+    c => c.connectorId === state.selectedConnector.id
+  );
+  // Highlight
+  document.querySelectorAll('.device-card').forEach(c => c.classList.remove('selected'));
+  cardEl.classList.add('selected');
+  document.getElementById('btn-start-wiring').disabled = false;
+  document.getElementById('no-pinout-warning').style.display =
+    (!state.selectedDeviceConnector || !state.selectedDeviceConnector.pinout?.length) ? 'block' : 'none';
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SCREEN 3: WIRING
+───────────────────────────────────────────────────────────── */
+function startWiring() {
+  state.currentPinIndex = 0;
+  state.isVerifyMode = false;
+  goToScreen('screen-wiring');
+  initWiringScreen();
+}
+
+function startDoubleCheck() {
+  state.currentPinIndex = 0;
+  state.isVerifyMode = true;
+  goToScreen('screen-wiring');
+  initWiringScreen();
+}
+
+function initWiringScreen() {
+  const device = state.selectedDevice;
+  const conn = state.selectedConnector;
+  const dc = state.selectedDeviceConnector;
+
+  document.getElementById('wiring-device-name').textContent = device.name;
+  document.getElementById('wiring-connector-name').textContent =
+    `${conn.label} · ${dc.label}`;
+
+  const modeBadge = document.getElementById('mode-badge');
+  modeBadge.textContent = state.isVerifyMode ? 'VERIFY MODE' : 'BUILD MODE';
+  modeBadge.className = `mode-badge ${state.isVerifyMode ? 'mode-verify' : 'mode-build'}`;
+
+  // Reset zoom/pan
+  state.zoom = 1;
+  state.panX = 0;
+  state.panY = 0;
+  updateTransform();
+
+  buildPinList();
+  renderConnectorSVG();
+  updatePinDisplay();
+  setupPanZoom();
+}
+
+function getPinout() {
+  const dc = state.selectedDeviceConnector;
+  if (!dc || !dc.pinout) return [];
+  return dc.pinout;
+}
+
+function getPinData(index) {
+  const pinout = getPinout();
+  if (index >= pinout.length) return null;
+  return pinout[index];
+}
+
+/* ─────────────────────────────────────────────────────────────
+   PIN NAVIGATION
+───────────────────────────────────────────────────────────── */
+function nextPin() {
+  const pinout = getPinout();
+  if (state.currentPinIndex < pinout.length - 1) {
+    state.currentPinIndex++;
+    updatePinDisplay();
+  } else {
+    showCompleteScreen();
+  }
+}
+
+function prevPin() {
+  if (state.currentPinIndex > 0) {
+    state.currentPinIndex--;
+    updatePinDisplay();
+  }
+}
+
+function skipToPin(index) {
+  state.currentPinIndex = index;
+  updatePinDisplay();
+}
+
+function updatePinDisplay() {
+  const pinout = getPinout();
+  const total = pinout.length;
+  const idx = state.currentPinIndex;
+  const pin = getPinData(idx);
+
+  if (!pin) return;
+
+  const isNC = pin.signal === 'NC' || pin.type === 'NC';
+  const isVerify = state.isVerifyMode;
+  const pct = Math.round(((idx) / total) * 100);
+
+  // Progress
+  document.getElementById('progress-label').textContent = `Pin ${pin.pin} of ${total}`;
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '%';
+  document.getElementById('panel-pin-counter').textContent = `${idx + 1} / ${total}`;
+
+  if (isVerify) {
+    document.getElementById('progress-bar').className = 'progress-bar-fill verify';
+    document.getElementById('progress-pct').className = 'progress-pct verify';
+  } else {
+    document.getElementById('progress-bar').className = 'progress-bar-fill';
+    document.getElementById('progress-pct').className = 'progress-pct';
+  }
+
+  // Pin number circle
+  const circle = document.getElementById('pin-num-circle');
+  circle.textContent = pin.pin;
+  circle.className = `pin-num-circle${isVerify ? ' verify-mode' : ''}`;
+
+  // Signal name
+  const sigEl = document.getElementById('pin-meta-signal');
+  sigEl.textContent = isNC ? 'NO CONNECT' : pin.signal;
+  sigEl.className = `pin-meta-signal${isNC ? ' nc' : ''}`;
+
+  // Details
+  const colorHex = pin.color || '#555';
+  document.getElementById('pin-color-dot').style.background = colorHex;
+  document.getElementById('pin-color-text').textContent = isNC ? '—' : (pin.colorName || pin.color || '—');
+  document.getElementById('pin-gauge-text').textContent = pin.gauge || '—';
+  document.getElementById('pin-dest-text').textContent = pin.destination || '—';
+  document.getElementById('pin-type-text').textContent = pin.type || '—';
+
+  // Notes
+  const notesEl = document.getElementById('instruction-notes');
+  notesEl.innerHTML = '';
+
+  if (isNC) {
+    notesEl.innerHTML = `<div class="instruction-note-item nc">
+      ⛔ This pin has NO CONNECTION. Leave the pin unterminated. Do not insert a contact.
+    </div>`;
+  } else {
+    if (pin.notes) {
+      const cls = pin.critical ? 'instruction-note-item critical' : 'instruction-note-item';
+      const prefix = pin.critical ? '⚠ CRITICAL: ' : '📋 ';
+      notesEl.innerHTML += `<div class="${cls}">${prefix}${pin.notes}</div>`;
+    }
+    if (pin.type && pin.type.includes('ARINC')) {
+      notesEl.innerHTML += `<div class="instruction-note-item">🔄 ARINC 429 wires must be twisted pair. Maintain twist throughout the run.</div>`;
+    }
+    if (pin.type === 'RS-232') {
+      notesEl.innerHTML += `<div class="instruction-note-item">📡 RS-232 – Keep run under 50 ft. Route away from high-power wiring.</div>`;
+    }
+    if (pin.type === 'Audio') {
+      notesEl.innerHTML += `<div class="instruction-note-item">🔊 Audio line – Use shielded wire. Terminate shield at source end only.</div>`;
+    }
+    if (pin.type === 'Power' || pin.signal?.includes('POWER')) {
+      notesEl.innerHTML += `<div class="instruction-note-item critical">⚡ POWER WIRE: Ensure circuit breaker is installed per aircraft wiring practices. Confirm voltage before connection.</div>`;
+    }
+    if (!notesEl.innerHTML) {
+      notesEl.innerHTML = `<div class="instruction-note-item">No additional notes for this pin.</div>`;
+    }
+  }
+
+  // Buttons
+  document.getElementById('btn-prev').disabled = idx === 0;
+  const isLast = idx === total - 1;
+  const nextBtn = document.getElementById('btn-next');
+  nextBtn.textContent = isLast ? '✓ Complete' : 'Next Pin →';
+  nextBtn.className = isLast ? 'btn btn-success btn-lg' : 'btn btn-primary btn-lg';
+
+  // Update SVG highlight
+  renderConnectorSVG();
+  updatePinList();
+
+  // Scroll pin list to current
+  const activeListItem = document.querySelector('.pin-list-item.active');
+  if (activeListItem) {
+    activeListItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   PIN LIST PANEL
+───────────────────────────────────────────────────────────── */
+function buildPinList() {
+  const container = document.getElementById('pin-list-container');
+  container.innerHTML = '';
+  const pinout = getPinout();
+  pinout.forEach((pin, idx) => {
+    const item = document.createElement('div');
+    item.className = 'pin-list-item';
+    item.id = `pin-list-${idx}`;
+    const isNC = pin.signal === 'NC' || pin.type === 'NC';
+    item.innerHTML = `
+      <div class="pin-list-num">${pin.pin}</div>
+      <div class="pin-list-info">
+        <div class="pin-list-signal">${isNC ? 'No Connect' : pin.signal}</div>
+      </div>
+      <span class="pin-list-check">✓</span>
+    `;
+    item.onclick = () => skipToPin(idx);
+    container.appendChild(item);
+  });
+}
+
+function updatePinList() {
+  const pinout = getPinout();
+  pinout.forEach((_, idx) => {
+    const item = document.getElementById(`pin-list-${idx}`);
+    if (!item) return;
+    item.classList.remove('active', 'done');
+    if (idx === state.currentPinIndex) {
+      item.classList.add('active');
+    } else if (idx < state.currentPinIndex) {
+      item.classList.add('done');
+    }
+  });
+}
+
+function togglePinList() {
+  const container = document.getElementById('pin-list-container');
+  const label = document.getElementById('pin-list-toggle-label');
+  const isHidden = container.style.display === 'none';
+  container.style.display = isHidden ? 'block' : 'none';
+  label.textContent = isHidden ? '▲ Hide' : '▼ Show';
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SVG CONNECTOR RENDERER
+───────────────────────────────────────────────────────────── */
+function renderConnectorSVG() {
+  const conn = state.selectedConnector;
+  const pinout = getPinout();
+  const currentPin = getPinData(state.currentPinIndex);
+  const container = document.getElementById('connector-svg-container');
+
+  let svgHTML = '';
+
+  if (conn.family === 'dsub') {
+    svgHTML = renderDSubSVG(conn, pinout, currentPin);
+  } else {
+    svgHTML = renderCircularSVG(conn, pinout, currentPin);
+  }
+
+  container.innerHTML = svgHTML;
+
+  // Add click handlers to pins
+  container.querySelectorAll('[data-pin-idx]').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = parseInt(el.getAttribute('data-pin-idx'));
+      if (!isNaN(idx)) skipToPin(idx);
+    });
+  });
+}
+
+function renderDSubSVG(conn, pinout, currentPin) {
+  const layout = DSUB_LAYOUTS[conn.pinCount];
+  if (!layout) return `<div style="color:var(--text-secondary);font-size:13px;padding:30px;">Connector diagram not available for this pin count.</div>`;
+
+  const rows = layout.rows;
+  const totalPins = conn.pinCount;
+  const pinR = conn.pinCount <= 15 ? 16 : conn.pinCount <= 25 ? 13 : 10;
+  const pinSpacing = pinR * 2 + 10;
+  const rowSpacing = pinR * 2 + 16;
+  const maxPerRow = Math.max(...rows.map(r => r[0]));
+
+  const svgW = maxPerRow * pinSpacing + 60;
+  const svgH = rows.length * rowSpacing + 80;
+
+  // Build pin number list per row (standard D-Sub numbering: row 1 is top)
+  let pinNumbers = [];
+  let n = 1;
+  // D-Sub standard: odd pins in top row, even in bottom (varies by size)
+  // For simplicity we'll number sequentially left-to-right, top-to-bottom
+  rows.forEach(row => {
+    for (let i = 0; i < row[0]; i++) {
+      pinNumbers.push(n++);
+    }
+  });
+
+  const isFlipped = state.viewMode === 'rear';
+
+  let pins = [];
+  let flatIdx = 0;
+  rows.forEach((row, rowIdx) => {
+    const count = row[0];
+    const totalRowWidth = (count - 1) * pinSpacing;
+    const startX = (svgW - totalRowWidth) / 2;
+    const y = 50 + rowIdx * rowSpacing;
+    for (let i = 0; i < count; i++) {
+      const pinNum = pinNumbers[flatIdx];
+      const pinDataIdx = pinout.findIndex(p => p.pin === pinNum);
+      const pinData = pinDataIdx >= 0 ? pinout[pinDataIdx] : null;
+      const isActive = currentPin && currentPin.pin === pinNum;
+      const isDone = pinDataIdx >= 0 && pinDataIdx < state.currentPinIndex;
+      const isNC = pinData && (pinData.signal === 'NC' || pinData.type === 'NC');
+
+      let x = isFlipped ? svgW - (startX + i * pinSpacing) : startX + i * pinSpacing;
+
+      let fill = 'var(--pin-inactive)';
+      let stroke = 'var(--pin-border)';
+      let strokeW = 1.5;
+      let labelColor = 'var(--text-muted)';
+
+      if (isActive) {
+        fill = 'var(--pin-active-fill)';
+        stroke = 'var(--accent)';
+        strokeW = 2.5;
+        labelColor = 'var(--accent)';
+      } else if (isDone) {
+        fill = 'var(--pin-done-fill)';
+        stroke = 'var(--pin-done-border)';
+        labelColor = 'var(--green)';
+      } else if (isNC) {
+        fill = 'var(--bg-primary)';
+        stroke = 'var(--border)';
+        labelColor = 'var(--text-muted)';
+      }
+
+      // Color stripe
+      let colorStripe = '';
+      if (pinData && !isNC && pinData.color) {
+        colorStripe = `<circle cx="${x}" cy="${y}" r="${pinR - 5}" fill="${pinData.color}" opacity="0.6"/>`;
+      }
+
+      const glowId = `glow-${pinNum}`;
+      const activeGlow = isActive ? `
+        <filter id="${glowId}">
+          <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+          <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>` : '';
+
+      pins.push(`
+        <g data-pin-idx="${pinDataIdx}" style="cursor:pointer" class="pin-circle">
+          ${activeGlow}
+          <circle cx="${x}" cy="${y}" r="${pinR}"
+            fill="${fill}" stroke="${stroke}" stroke-width="${strokeW}"
+            ${isActive ? `filter="url(#${glowId})"` : ''}
+          />
+          ${colorStripe}
+          ${isActive ? `<circle cx="${x}" cy="${y}" r="${pinR + 4}" fill="none" stroke="var(--accent)" stroke-width="1.5" opacity="0.5" class="pin-active-ring"/>` : ''}
+          ${isDone ? `<text x="${x}" y="${y+4}" text-anchor="middle" font-size="10" fill="var(--green)" font-weight="700">✓</text>` : 
+                     `<text x="${x}" y="${y+4}" text-anchor="middle" font-size="${pinR > 12 ? 11 : 9}" fill="${labelColor}" font-family="Roboto Mono" font-weight="${isActive ? 700 : 500}">${pinNum}</text>`}
+        </g>
+      `);
+      flatIdx++;
+    }
+  });
+
+  // Connector housing shape
+  const hPad = 30;
+  const vPad = 20;
+  const houseW = svgW - hPad * 2;
+  const houseH = svgH - vPad * 2;
+
+  return `
+    <svg viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;max-height:480px;width:100%">
+      <defs>
+        <filter id="shadow">
+          <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="rgba(0,0,0,0.5)"/>
+        </filter>
+      </defs>
+
+      <!-- Connector Housing -->
+      <rect x="${hPad}" y="${vPad}" width="${houseW}" height="${houseH}"
+        rx="8" ry="8" fill="var(--bg-elevated)" stroke="var(--border-bright)" stroke-width="2"
+        filter="url(#shadow)"/>
+      <!-- Housing inner -->
+      <rect x="${hPad+6}" y="${vPad+6}" width="${houseW-12}" height="${houseH-12}"
+        rx="4" fill="var(--bg-secondary)" stroke="var(--border)" stroke-width="1"/>
+
+      <!-- D-Sub trapezoidal shape hint -->
+      <text x="${svgW/2}" y="${svgH - 10}" text-anchor="middle"
+        font-size="9" fill="var(--text-muted)" font-family="Roboto Mono" letter-spacing="0.08em">
+        ${conn.label.toUpperCase()} · ${state.viewMode === 'rear' ? 'SOLDER/REAR VIEW' : 'MATING/FRONT VIEW'}
+      </text>
+      <text x="${hPad + 10}" y="${vPad + 16}" font-size="8" fill="var(--text-muted)" font-family="Roboto Mono">▶ PIN 1</text>
+
+      <!-- Pins -->
+      ${pins.join('')}
+    </svg>
+  `;
+}
+
+function renderCircularSVG(conn, pinout, currentPin) {
+  const totalPins = conn.pinCount;
+  const rings = totalPins <= 32 ? [
+    { r: 0, count: 1 },
+    { r: 40, count: Math.min(8, Math.floor(totalPins * 0.25)) },
+    { r: 80, count: Math.min(16, Math.floor(totalPins * 0.5)) },
+    { r: 120, count: totalPins - 1 - Math.min(8, Math.floor(totalPins * 0.25)) - Math.min(16, Math.floor(totalPins * 0.5)) }
+  ] : [
+    { r: 0, count: 1 },
+    { r: 35, count: 8 },
+    { r: 70, count: 16 },
+    { r: 105, count: Math.min(24, totalPins - 25) },
+    { r: 140, count: totalPins - 49 }
+  ];
+
+  const cx = 180, cy = 180;
+  const svgW = 360, svgH = 360;
+  const pinR = 12;
+
+  let pinSVG = [];
+  let pinNum = 1;
+
+  rings.forEach(ring => {
+    if (ring.r === 0 && ring.count === 1) {
+      // Center pin
+      const pinData = pinout.find(p => p.pin === pinNum);
+      const pinDataIdx = pinout.findIndex(p => p.pin === pinNum);
+      const isActive = currentPin && currentPin.pin === pinNum;
+      const isDone = pinDataIdx >= 0 && pinDataIdx < state.currentPinIndex;
+      const fill = isActive ? 'var(--pin-active-fill)' : isDone ? 'var(--pin-done-fill)' : 'var(--pin-inactive)';
+      const stroke = isActive ? 'var(--accent)' : isDone ? 'var(--pin-done-border)' : 'var(--pin-border)';
+      pinSVG.push(`<g data-pin-idx="${pinDataIdx}" style="cursor:pointer">
+        <circle cx="${cx}" cy="${cy}" r="${pinR}" fill="${fill}" stroke="${stroke}" stroke-width="2"/>
+        <text x="${cx}" y="${cy+4}" text-anchor="middle" font-size="9" fill="${isActive ? 'var(--accent)' : isDone ? 'var(--green)' : 'var(--text-muted)'}" font-family="Roboto Mono">${isDone ? '✓' : pinNum}</text>
+      </g>`);
+      pinNum++;
+    } else {
+      for (let i = 0; i < ring.count && pinNum <= totalPins; i++) {
+        const angle = (i / ring.count) * 2 * Math.PI - Math.PI / 2;
+        const px = cx + ring.r * Math.cos(angle);
+        const py = cy + ring.r * Math.sin(angle);
+        const pinData = pinout.find(p => p.pin === pinNum);
+        const pinDataIdx = pinout.findIndex(p => p.pin === pinNum);
+        const isActive = currentPin && currentPin.pin === pinNum;
+        const isDone = pinDataIdx >= 0 && pinDataIdx < state.currentPinIndex;
+        const fill = isActive ? 'var(--pin-active-fill)' : isDone ? 'var(--pin-done-fill)' : 'var(--pin-inactive)';
+        const stroke = isActive ? 'var(--accent)' : isDone ? 'var(--pin-done-border)' : 'var(--pin-border)';
+        const colorStripe = (pinData && pinData.color && !isActive) ? `<circle cx="${px}" cy="${py}" r="${pinR-5}" fill="${pinData.color}" opacity="0.5"/>` : '';
+        pinSVG.push(`<g data-pin-idx="${pinDataIdx}" style="cursor:pointer">
+          <circle cx="${px}" cy="${py}" r="${pinR}" fill="${fill}" stroke="${stroke}" stroke-width="${isActive ? 2.5 : 1.5}"/>
+          ${colorStripe}
+          ${isActive ? `<circle cx="${px}" cy="${py}" r="${pinR+4}" fill="none" stroke="var(--accent)" stroke-width="1.5" opacity="0.5"/>` : ''}
+          <text x="${px}" y="${py+3.5}" text-anchor="middle" font-size="8" fill="${isActive ? 'var(--accent)' : isDone ? 'var(--green)' : 'var(--text-muted)'}" font-family="Roboto Mono">${isDone ? '✓' : pinNum}</text>
+        </g>`);
+        pinNum++;
+      }
+    }
+  });
+
+  return `
+    <svg viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;max-height:420px;width:100%">
+      <circle cx="${cx}" cy="${cy}" r="150" fill="var(--bg-elevated)" stroke="var(--border-bright)" stroke-width="2"/>
+      <circle cx="${cx}" cy="${cy}" r="144" fill="var(--bg-secondary)" stroke="var(--border)" stroke-width="1"/>
+      <circle cx="${cx}" cy="${cy}" r="4" fill="var(--border-bright)"/>
+      <text x="${cx}" y="${svgH - 12}" text-anchor="middle" font-size="9" fill="var(--text-muted)" font-family="Roboto Mono" letter-spacing="0.08em">
+        ${conn.label.toUpperCase()} · ${state.viewMode === 'rear' ? 'REAR VIEW' : 'FRONT VIEW'}
+      </text>
+      ${pinSVG.join('')}
+    </svg>
+  `;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   VIEW TOGGLE (FRONT / REAR)
+───────────────────────────────────────────────────────────── */
+function setView(mode) {
+  state.viewMode = mode;
+  document.getElementById('btn-view-front').className = `view-btn${mode === 'front' ? ' active' : ''}`;
+  document.getElementById('btn-view-rear').className = `view-btn${mode === 'rear' ? ' active' : ''}`;
+  renderConnectorSVG();
+}
+
+/* ─────────────────────────────────────────────────────────────
+   ZOOM & PAN
+───────────────────────────────────────────────────────────── */
+function adjustZoom(delta) {
+  state.zoom = Math.min(3, Math.max(0.4, state.zoom + delta));
+  updateTransform();
+}
+
+function resetZoom() {
+  state.zoom = 1;
+  state.panX = 0;
+  state.panY = 0;
+  updateTransform();
+}
+
+function updateTransform() {
+  const el = document.getElementById('connector-svg-container');
+  if (el) {
+    el.style.transform = `translate(${state.panX}px, ${state.panY}px) scale(${state.zoom})`;
+  }
+}
+
+function setupPanZoom() {
+  const wrap = document.getElementById('diagram-canvas-wrap');
+  if (!wrap) return;
+
+  // Mouse wheel zoom
+  wrap.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    adjustZoom(e.deltaY < 0 ? 0.1 : -0.1);
+  }, { passive: false });
+
+  // Pan
+  wrap.addEventListener('mousedown', (e) => {
+    state.isPanning = true;
+    state.lastPanX = e.clientX;
+    state.lastPanY = e.clientY;
+  });
+  window.addEventListener('mousemove', (e) => {
+    if (!state.isPanning) return;
+    state.panX += e.clientX - state.lastPanX;
+    state.panY += e.clientY - state.lastPanY;
+    state.lastPanX = e.clientX;
+    state.lastPanY = e.clientY;
+    updateTransform();
+  });
+  window.addEventListener('mouseup', () => { state.isPanning = false; });
+
+  // Touch zoom/pan
+  let lastDist = 0;
+  wrap.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 1) {
+      state.isPanning = true;
+      state.lastPanX = e.touches[0].clientX;
+      state.lastPanY = e.touches[0].clientY;
+    }
+    if (e.touches.length === 2) {
+      lastDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+    }
+  }, { passive: true });
+  wrap.addEventListener('touchmove', (e) => {
+    if (e.touches.length === 1 && state.isPanning) {
+      state.panX += e.touches[0].clientX - state.lastPanX;
+      state.panY += e.touches[0].clientY - state.lastPanY;
+      state.lastPanX = e.touches[0].clientX;
+      state.lastPanY = e.touches[0].clientY;
+      updateTransform();
+    }
+    if (e.touches.length === 2) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const delta = (dist - lastDist) * 0.005;
+      adjustZoom(delta);
+      lastDist = dist;
+    }
+  }, { passive: true });
+  wrap.addEventListener('touchend', () => { state.isPanning = false; });
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SCREEN 4: COMPLETE
+───────────────────────────────────────────────────────────── */
+function showCompleteScreen() {
+  const pinout = getPinout();
+  const ncCount = pinout.filter(p => p.signal === 'NC' || p.type === 'NC').length;
+  const wiredCount = pinout.length - ncCount;
+
+  document.getElementById('complete-device-name').textContent = state.selectedDevice.name;
+  document.getElementById('complete-title').textContent = state.isVerifyMode ? 'VERIFY COMPLETE' : 'BUILD COMPLETE';
+  document.getElementById('complete-subtitle').innerHTML =
+    `All pins completed for <strong>${state.selectedDevice.name}</strong> · ${state.selectedConnector.label}`;
+  document.getElementById('stat-pins').textContent = wiredCount;
+  document.getElementById('stat-nc').textContent = ncCount;
+  document.getElementById('stat-mode').textContent = state.isVerifyMode ? 'VERIFY' : 'BUILD';
+
+  goToScreen('screen-complete');
+}
+
+/* ─────────────────────────────────────────────────────────────
+   INIT
+───────────────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  buildConnectorGrid();
+});
+</script>
 </body>
 </html>
