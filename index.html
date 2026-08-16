@@ -1,153 +1,804 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Austin Traffic Camera Photos</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background-color: #1a1a1a;
-            color: white;
-            font-family: 'Arial', sans-serif;
-            line-height: 1.6;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .header {
-            text-align: center;
-            padding: 20px;
-            background-color: #333;
-            margin-bottom: 20px;
-        }
-
-        .photo-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-            padding: 1rem;
-        }
-
-        .photo-container {
-            position: relative;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-        }
-
-        .photo-container:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
-        }
-
-        .photo {
-            width: 100%;
-            height: auto;
-            max-width: 100%;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: opacity 0.3s ease-in-out;
-        }
-
-        .photo:hover {
-            opacity: 0.9;
-        }
-
-        .camera-info {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            font-size: 0.9em;
-        }
-
-        .camera-info h3 {
-            margin-bottom: 5px;
-            font-size: 1rem;
-        }
-
-        @media (max-width: 768px) {
-            .photo-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .container {
-                padding: 10px;
-            }
-        }
-    </style>
-    <script>
-async function fetchData() {
-    const url = 'https://data.austintexas.gov/resource/pj7k-98z2.json?$limit=3000&$order=timestamp%20desc&$select=device_id,status_desc,timestamp&$where=device_type%20=%20%27camera%27';
-    const response = await fetch(url);
-    const data = await response.json();
-    return data;
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Austin Traffic Cameras</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Overpass:ital,wght@0,300;0,400;0,600;0,800&family=Overpass+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{
+  --asphalt:#16181a; --asphalt-raised:#1f2225; --asphalt-sunk:#0f1112;
+  --guide-green:#006b45; --guide-green-lo:#0a8a5a;
+  --retro:#f2f4f1; --dim:#8a9199; --dimmer:#5c6469;
+  --amber:#ffb612; --amber-dk:#8a6208; --hairline:#2c3033;
+  --step--1:0.75rem; --step-0:0.9375rem; --step-1:1.25rem;
+  --step-3:clamp(2rem,6vw,3.25rem);
 }
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--asphalt);color:var(--retro);
+  font-family:'Overpass',system-ui,-apple-system,sans-serif;
+  font-size:var(--step-0);line-height:1.5;-webkit-font-smoothing:antialiased}
+:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+button{font:inherit;color:inherit}
 
-function displayImages(data) {
-    const container = document.querySelector('.photo-grid');
-    // Clear previous content before adding new images
-    container.innerHTML = '';
+.masthead{background:var(--guide-green);border-bottom:4px solid var(--retro);
+  padding:clamp(1.5rem,4vw,2.75rem) clamp(1rem,4vw,2.5rem) clamp(1.25rem,3vw,2rem);
+  position:relative;overflow:hidden}
+.masthead::after{content:"";position:absolute;inset:.5rem;
+  border:2px solid rgba(242,244,241,.55);border-radius:6px;pointer-events:none}
+.masthead__inner{max-width:1500px;margin:0 auto;position:relative;z-index:1}
+.masthead h1{margin:0;font-size:var(--step-3);font-weight:800;
+  letter-spacing:-.02em;line-height:1.02;text-transform:uppercase}
+.masthead h1 span{display:block;font-weight:300;letter-spacing:.01em}
+.masthead p{margin:.75rem 0 0;font-family:'Overpass Mono',ui-monospace,monospace;
+  font-size:var(--step--1);letter-spacing:.06em;text-transform:uppercase;
+  color:rgba(242,244,241,.82)}
 
-    data.forEach(item => {
-        const device_id = item.device_id;
-        const imageUrl = `https://cctv.austinmobility.io/image/${device_id}.jpg`;
+.toolbar{position:sticky;top:0;z-index:600;background:rgba(22,24,26,.94);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--hairline);
+  padding:.875rem clamp(1rem,4vw,2.5rem)}
+.toolbar__inner{max-width:1500px;margin:0 auto;display:flex;gap:.5rem;
+  align-items:center;flex-wrap:wrap}
+.search{position:relative;flex:1 1 220px;min-width:0}
+.search input{width:100%;background:var(--asphalt-sunk);
+  border:1px solid var(--hairline);border-radius:3px;color:var(--retro);
+  padding:.7rem .9rem .7rem 2.4rem;font-size:var(--step-0);font-family:inherit}
+.search input::placeholder{color:var(--dimmer)}
+.search input:focus{border-color:var(--guide-green-lo)}
+.search svg{position:absolute;left:.8rem;top:50%;transform:translateY(-50%);
+  width:16px;height:16px;stroke:var(--dimmer);fill:none;stroke-width:2}
+.btn{background:var(--asphalt-raised);border:1px solid var(--hairline);
+  border-radius:3px;padding:.7rem .95rem;cursor:pointer;font-weight:600;
+  font-size:var(--step--1);letter-spacing:.05em;text-transform:uppercase;
+  white-space:nowrap;transition:background .15s,border-color .15s}
+.btn:hover{background:#282c30;border-color:var(--dimmer)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn--go{background:var(--guide-green);border-color:var(--guide-green-lo)}
+.btn--go:hover{background:var(--guide-green-lo)}
+.btn[aria-pressed="true"]{background:var(--guide-green);border-color:var(--guide-green-lo)}
+.btn[aria-pressed="true"].btn--watch{background:var(--amber-dk);border-color:var(--amber)}
+.tally{font-family:'Overpass Mono',ui-monospace,monospace;font-size:var(--step--1);
+  color:var(--dim);letter-spacing:.04em;white-space:nowrap;
+  display:flex;align-items:center;gap:.5rem}
+.pulse{width:8px;height:8px;border-radius:50%;background:var(--guide-green-lo);
+  box-shadow:0 0 0 0 rgba(10,138,90,.7);animation:pulse 2.4s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 9px rgba(10,138,90,0)}
+  100%{box-shadow:0 0 0 0 rgba(10,138,90,0)}}
 
-        const photoContainer = document.createElement('div');
-        photoContainer.classList.add('photo-container');
+main{max-width:1500px;margin:0 auto;
+  padding:clamp(1rem,3vw,2rem) clamp(1rem,4vw,2.5rem) 5rem}
 
-        const img = document.createElement('img');
-        img.classList.add('photo');
-        img.src = imageUrl;
-        img.alt = `Camera ${device_id}`;
-        img.addEventListener("click", () => {
-            const cameraUrl = `https://cctv.austinmobility.io/publicportal/device/${device_id}`;
-            window.open(cameraUrl, "_blank");
-        });
+.mapwrap{display:none;margin-bottom:clamp(1rem,3vw,2rem)}
+.mapwrap.is-open{display:block}
+#map{height:min(62vh,480px);border:1px solid var(--hairline);border-radius:4px;
+  background:var(--asphalt-sunk)}
+.legend{display:flex;gap:1.25rem;flex-wrap:wrap;align-items:center;
+  padding:.65rem .25rem 0;font-family:'Overpass Mono',ui-monospace,monospace;
+  font-size:var(--step--1);letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+.legend span{display:flex;align-items:center;gap:.45rem}
+.legend i{width:10px;height:10px;border-radius:50%;display:block}
+.legend .on{background:var(--guide-green-lo)}
+.legend .off{background:var(--amber)}
+.legend .me{background:#5aa9ff}
+.leaflet-container{font-family:'Overpass',sans-serif;background:var(--asphalt-sunk)}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{
+  background:var(--asphalt-raised);color:var(--retro);
+  border:1px solid var(--hairline);border-radius:3px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.leaflet-popup-content{margin:.7rem .85rem;font-size:.82rem;line-height:1.4}
+.leaflet-popup-close-button{color:var(--dim) !important}
+.pop__name{font-weight:600;margin-bottom:.15rem}
+.pop__meta{font-family:'Overpass Mono',ui-monospace,monospace;font-size:.68rem;
+  letter-spacing:.07em;text-transform:uppercase;color:var(--dimmer);margin-bottom:.5rem}
+.pop__meta.down{color:var(--amber)}
+.pop__btn{background:var(--guide-green);border:1px solid var(--guide-green-lo);
+  color:var(--retro);border-radius:3px;padding:.35rem .7rem;cursor:pointer;margin-right:.35rem;
+  font-family:'Overpass Mono',ui-monospace,monospace;font-size:.65rem;
+  letter-spacing:.1em;text-transform:uppercase}
+.pop__btn:hover{background:var(--guide-green-lo)}
+.pop__btn.alt{background:transparent;border-color:var(--amber-dk);color:var(--amber)}
+.pop__btn.alt:hover{background:rgba(255,182,18,.12)}
 
-        photoContainer.appendChild(img);
-        container.appendChild(photoContainer);
-    });
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,310px),1fr));
+  gap:clamp(.75rem,2vw,1.25rem)}
+.cam{background:var(--asphalt-raised);border:1px solid var(--hairline);
+  border-radius:4px;overflow:hidden;display:flex;flex-direction:column;
+  transition:border-color .18s,transform .18s}
+.cam:hover{border-color:var(--guide-green-lo);transform:translateY(-2px)}
+.cam.is-watched{border-color:var(--amber-dk)}
+.cam__shot{display:block;width:100%;padding:0;border:0;background:none;cursor:pointer;
+  text-align:left}
+.cam__frame{position:relative;aspect-ratio:4/3;background:var(--asphalt-sunk);overflow:hidden}
+.cam__frame img{width:100%;height:100%;object-fit:cover;display:block;
+  opacity:0;transition:opacity .35s}
+.cam__frame img.is-shown{opacity:1}
+.cam__frame[data-state="loading"]::before{content:"";position:absolute;inset:0;
+  background:linear-gradient(100deg,var(--asphalt-sunk) 30%,#212528 50%,var(--asphalt-sunk) 70%);
+  background-size:220% 100%;animation:sweep 1.4s linear infinite}
+@keyframes sweep{to{background-position:-220% 0}}
+
+.dms{position:absolute;inset:0;display:none;flex-direction:column;
+  align-items:center;justify-content:center;gap:.4rem;background:#08090a;
+  background-image:radial-gradient(rgba(255,182,18,.055) 1px,transparent 1.2px);
+  background-size:5px 5px;padding:1rem;text-align:center}
+.cam__frame[data-state="failed"] .dms,
+.cam__frame[data-state="reported"] .dms{display:flex}
+.dms__line{font-family:'Overpass Mono',ui-monospace,monospace;font-weight:600;
+  font-size:.9rem;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--amber);text-shadow:0 0 10px rgba(255,182,18,.45)}
+.dms__sub{font-family:'Overpass Mono',ui-monospace,monospace;font-size:.65rem;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--amber-dk)}
+.dms__retry{margin-top:.35rem;background:transparent;border:1px solid var(--amber-dk);
+  color:var(--amber);border-radius:2px;padding:.3rem .7rem;
+  font-family:'Overpass Mono',ui-monospace,monospace;font-size:.62rem;
+  letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+.dms__retry:hover{background:rgba(255,182,18,.1)}
+
+.cam__meta{padding:.7rem .5rem .8rem .85rem;border-top:1px solid var(--hairline);
+  display:flex;align-items:flex-start;gap:.5rem}
+.cam__text{flex:1;min-width:0;display:flex;flex-direction:column;gap:.3rem}
+.cam__name{font-weight:600;font-size:.875rem;line-height:1.3;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cam__stamp{font-family:'Overpass Mono',ui-monospace,monospace;font-size:.68rem;
+  letter-spacing:.07em;text-transform:uppercase;color:var(--dimmer)}
+.cam__stamp[data-stale="true"]{color:var(--amber)}
+.cam__dist{font-family:'Overpass Mono',ui-monospace,monospace;font-size:.66rem;
+  letter-spacing:.07em;text-transform:uppercase;color:#5aa9ff}
+.cam__star{background:none;border:1px solid transparent;border-radius:3px;
+  cursor:pointer;font-size:1.05rem;line-height:1;padding:.25rem .35rem;
+  color:var(--dimmer);flex:none}
+.cam__star:hover{color:var(--amber);border-color:var(--hairline)}
+.cam__star[aria-pressed="true"]{color:var(--amber)}
+
+.notice{border:1px dashed var(--hairline);border-radius:4px;
+  padding:clamp(1.5rem,5vw,3rem);text-align:center;color:var(--dim);grid-column:1/-1}
+.notice strong{color:var(--retro);display:block;margin-bottom:.5rem;font-size:var(--step-1)}
+
+.lightbox{position:fixed;inset:0;z-index:1200;background:rgba(8,9,10,.94);
+  display:none;align-items:center;justify-content:center;padding:clamp(1rem,4vw,3rem)}
+.lightbox[open]{display:flex}
+.lightbox img{max-width:100%;max-height:76vh;border:1px solid var(--hairline);border-radius:3px}
+.lightbox__panel{max-width:1200px;width:100%}
+.lightbox__bar{display:flex;justify-content:space-between;align-items:baseline;
+  gap:1rem;margin-bottom:.75rem;flex-wrap:wrap}
+.lightbox__title{font-size:var(--step-1);font-weight:600;margin:0}
+.lightbox__acts button{background:none;border:1px solid var(--hairline);
+  border-radius:3px;padding:.4rem .8rem;cursor:pointer;
+  font-family:'Overpass Mono',ui-monospace,monospace;
+  font-size:.7rem;letter-spacing:.1em;text-transform:uppercase}
+.lightbox__acts button:hover{border-color:var(--dim)}
+
+.toast{position:fixed;left:50%;bottom:1.5rem;transform:translateX(-50%);
+  background:var(--guide-green);border:1px solid var(--guide-green-lo);
+  color:var(--retro);padding:.6rem 1.1rem;border-radius:3px;z-index:1400;
+  font-family:'Overpass Mono',ui-monospace,monospace;font-size:var(--step--1);
+  letter-spacing:.08em;text-transform:uppercase;opacity:0;pointer-events:none;
+  transition:opacity .2s}
+.toast.is-up{opacity:1}
+
+footer{border-top:1px solid var(--hairline);padding:1.75rem clamp(1rem,4vw,2.5rem);
+  color:var(--dimmer);font-family:'Overpass Mono',ui-monospace,monospace;
+  font-size:var(--step--1);letter-spacing:.05em}
+footer div{max-width:1500px;margin:0 auto}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+@media (prefers-reduced-motion:reduce){
+  .cam,.cam:hover{transition:none;transform:none}
+  .pulse{animation:none}
+  .cam__frame[data-state="loading"]::before{animation:none}
+  .cam__frame img{transition:none}
 }
-
-async function refreshData() {
-    try {
-        const data = await fetchData();
-        displayImages(data);
-    } catch (error) {
-        console.error('Error fetching data:', error);
-    }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    // Initial data fetch
-    refreshData();
-
-    // Set up interval to update data every 1 minute (60,000 milliseconds)
-    setInterval(refreshData, 5000);
-});
-    </script>
+</style>
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <h1>Austin Traffic Cameras</h1>
-        </header>
-        <div class="photo-grid"></div>
+
+<header class="masthead">
+  <div class="masthead__inner">
+    <h1>Austin<span>Traffic Cameras</span></h1>
+    <p id="subhead">Loading camera list</p>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="toolbar__inner">
+    <div class="search">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <label class="sr" for="q">Search by intersection or camera number</label>
+      <input id="q" type="search" placeholder="Search an intersection, street, or camera number" autocomplete="off">
     </div>
+    <button class="btn" id="mapBtn" aria-pressed="false">Map</button>
+    <button class="btn" id="nearBtn" aria-pressed="false">Near me</button>
+    <button class="btn btn--watch" id="watchBtn" aria-pressed="false">Watch list</button>
+    <button class="btn" id="showDown" aria-pressed="false">Show down</button>
+    <button class="btn" id="autoBtn" aria-pressed="false">Auto-refresh</button>
+    <button class="btn btn--go" id="refresh">Refresh</button>
+    <button class="btn" id="shareBtn">Copy link</button>
+    <div class="tally"><span class="pulse" aria-hidden="true"></span><span id="tally">Loading</span></div>
+  </div>
+</div>
+
+<main>
+  <div class="mapwrap" id="mapwrap">
+    <div id="map"></div>
+    <div class="legend">
+      <span><i class="on"></i> Online</span>
+      <span><i class="off"></i> Reported down</span>
+      <span><i class="me"></i> You</span>
+      <span id="mapCount"></span>
+    </div>
+  </div>
+  <div class="grid" id="grid"></div>
+</main>
+
+<footer><div id="foot">Camera status and locations from the City of Austin open data portal. Images from the city camera feed.</div></footer>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-labelledby="lbTitle">
+  <div class="lightbox__panel">
+    <div class="lightbox__bar">
+      <h2 class="lightbox__title" id="lbTitle"></h2>
+      <div class="lightbox__acts"><button id="lbClose" type="button">Close · Esc</button></div>
+    </div>
+    <img id="lbImg" alt="">
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    
+const DATASET_URL = 'https://data.austintexas.gov/resource/pj7k-98z2.json?$limit=3000&$order=timestamp%20desc&$select=device_id,status_desc,timestamp&$where=device_type%20=%20%27camera%27';
+
+const LOCATIONS_URL = 'https://data.austintexas.gov/resource/b4k4-adkb.json?$limit=3000&$select=camera_id,location_name,location';
+
+function imageUrl(id){
+  return `https://cctv.austinmobility.io/image/${id}.jpg`;
+}
+
+const CONFIG = {
+  maxConcurrent: 4,
+  retries: 2,
+  retryDelayMs: 1200,
+  staleAfterMs: 300000,
+  listRefreshMs: 900000,
+  autoRefreshMs: 60000,
+  cacheBust: false
+};
+
+const grid    = document.getElementById('grid');
+const tally   = document.getElementById('tally');
+const subhead = document.getElementById('subhead');
+const qInput  = document.getElementById('q');
+const downBtn = document.getElementById('showDown');
+const mapBtn  = document.getElementById('mapBtn');
+const nearBtn = document.getElementById('nearBtn');
+const watchBtn= document.getElementById('watchBtn');
+const autoBtn = document.getElementById('autoBtn');
+const shareBtn= document.getElementById('shareBtn');
+const mapwrap = document.getElementById('mapwrap');
+const mapCount= document.getElementById('mapCount');
+const lightbox= document.getElementById('lightbox');
+const lbImg   = document.getElementById('lbImg');
+const lbTitle = document.getElementById('lbTitle');
+const toastEl = document.getElementById('toast');
+
+let cameras = [];
+let cards   = new Map();
+let places  = new Map();
+let watch   = new Set();
+let includeDown = false, watchOnly = false, nearMode = false, autoMode = false;
+let here = null, autoTimer = null;
+let map = null, markerLayer = null, meMarker = null, mapReady = false;
+
+/* ---- Toast ---- */
+let toastTimer;
+function toast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add('is-up');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('is-up'), 2200);
+}
+
+/* ---- State lives in the URL, so any view is shareable ---- */
+function readState(){
+  const h = new URLSearchParams(location.hash.replace(/^#/,''));
+  qInput.value = h.get('q') || '';
+  includeDown  = h.get('down') === '1';
+  watchOnly    = h.get('only') === '1';
+  const w = h.get('watch');
+  if(w){
+    watch = new Set(w.split(',').map(s => s.trim()).filter(Boolean));
+  }else{
+    try{
+      const saved = localStorage.getItem('atc.watch');
+      if(saved) watch = new Set(JSON.parse(saved));
+    }catch(e){ /* storage unavailable — URL still works */ }
+  }
+  downBtn.setAttribute('aria-pressed', String(includeDown));
+  watchBtn.setAttribute('aria-pressed', String(watchOnly));
+}
+function writeState(){
+  const h = new URLSearchParams();
+  const q = qInput.value.trim();
+  if(q) h.set('q', q);
+  if(includeDown) h.set('down','1');
+  if(watchOnly)   h.set('only','1');
+  if(watch.size)  h.set('watch', [...watch].join(','));
+  const s = h.toString();
+  history.replaceState(null, '', s ? '#' + s : location.pathname + location.search);
+  try{ localStorage.setItem('atc.watch', JSON.stringify([...watch])); }catch(e){}
+}
+
+/* ---- Queue ---- */
+const queue = []; let active = 0;
+function enqueue(job){ queue.push(job); drain(); }
+function drain(){
+  while(active < CONFIG.maxConcurrent && queue.length){
+    const job = queue.shift(); active++;
+    job().finally(() => { active--; drain(); });
+  }
+}
+function loadImage(url){
+  return new Promise((resolve,reject) => {
+    const probe = new Image();
+    probe.onload = () => resolve(url);
+    probe.onerror = () => reject(new Error('unavailable'));
+    probe.src = url;
+  });
+}
+const timeString = d => d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+function milesBetween(a, b){
+  const R = 3958.8, rad = d => d * Math.PI / 180;
+  const dLat = rad(b.lat - a.lat), dLng = rad(b.lng - a.lng);
+  const s = Math.sin(dLat/2)**2 +
+            Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(s));
+}
+
+/* ---- Locations ---- */
+function coordsOf(row){
+  const loc = row.location || row.location_1 || row.point || null;
+  if(loc && Array.isArray(loc.coordinates) && loc.coordinates.length >= 2){
+    return { lng:Number(loc.coordinates[0]), lat:Number(loc.coordinates[1]) };
+  }
+  if(typeof loc === 'string'){
+    const m = loc.match(/POINT\s*\(\s*(-?[\d.]+)\s+(-?[\d.]+)\s*\)/i);
+    if(m) return { lng:Number(m[1]), lat:Number(m[2]) };
+  }
+  if(row.latitude && row.longitude) return { lat:Number(row.latitude), lng:Number(row.longitude) };
+  return null;
+}
+async function fetchPlaces(){
+  const res = await fetch(LOCATIONS_URL);
+  if(!res.ok) throw new Error('Locations returned ' + res.status);
+  const rows = await res.json();
+  const out = new Map();
+  for(const row of rows){
+    const id = String(row.camera_id ?? row.cameraid ?? '').trim();
+    if(!id) continue;
+    const c = coordsOf(row);
+    out.set(id, { name:(row.location_name || '').trim(),
+                  lat:c ? c.lat : null, lng:c ? c.lng : null });
+  }
+  return out;
+}
+
+/* ---- Status log collapsed to one row per camera ---- */
+async function fetchCameras(){
+  const res = await fetch(DATASET_URL);
+  if(!res.ok) throw new Error('Dataset returned ' + res.status);
+  const rows = await res.json();
+  const latest = new Map();
+  for(const row of rows){
+    if(!row || row.device_id == null) continue;
+    const id = String(row.device_id);
+    if(!latest.has(id)){
+      latest.set(id, { id, status:(row.status_desc || '').toLowerCase(),
+                       checked: row.timestamp || null });
+    }
+  }
+  const list = [...latest.values()];
+  list.forEach(cam => {
+    const p = places.get(cam.id);
+    cam.name = (p && p.name) ? p.name : ('Camera ' + cam.id);
+    cam.lat  = p ? p.lat : null;
+    cam.lng  = p ? p.lng : null;
+  });
+  return list;
+}
+
+function recomputeDistances(){
+  cameras.forEach(cam => {
+    cam.dist = (here && cam.lat != null && cam.lng != null)
+      ? milesBetween(here, {lat:cam.lat, lng:cam.lng}) : null;
+  });
+}
+
+function buildCard(cam){
+  const card = document.createElement('div');
+  card.className = 'cam';
+
+  const shot = document.createElement('button');
+  shot.className = 'cam__shot'; shot.type = 'button';
+  shot.setAttribute('aria-label', 'Open ' + cam.name);
+
+  const frame = document.createElement('div');
+  frame.className = 'cam__frame';
+  frame.dataset.state = 'idle';
+
+  const img = document.createElement('img');
+  img.alt = cam.name; img.decoding = 'async';
+
+  const dms = document.createElement('div');
+  dms.className = 'dms';
+  dms.innerHTML = '<div class="dms__line" data-line>Signal down</div>' +
+                  '<div class="dms__sub" data-sub>Camera not responding</div>' +
+                  '<button class="dms__retry" type="button">Try again</button>';
+  frame.append(img, dms);
+  shot.appendChild(frame);
+
+  const meta = document.createElement('div'); meta.className = 'cam__meta';
+  const text = document.createElement('div'); text.className = 'cam__text';
+  const name = document.createElement('div'); name.className = 'cam__name';
+  name.textContent = cam.name;
+  const stamp = document.createElement('div'); stamp.className = 'cam__stamp';
+  stamp.textContent = 'Waiting';
+  const dist = document.createElement('div'); dist.className = 'cam__dist';
+  text.append(name, stamp, dist);
+
+  const star = document.createElement('button');
+  star.className = 'cam__star'; star.type = 'button';
+  star.textContent = '★';
+  star.setAttribute('aria-label', 'Add ' + cam.name + ' to watch list');
+  meta.append(text, star);
+  card.append(shot, meta);
+
+  const rec = { cam, card, frame, img, dms, stamp, dist, star, loadedAt:null };
+  cards.set(cam.id, rec);
+
+  dms.querySelector('.dms__retry').addEventListener('click', e => {
+    e.stopPropagation(); enqueue(() => attempt(rec));
+  });
+  shot.addEventListener('click', () => openLightbox(rec));
+  star.addEventListener('click', () => toggleWatch(cam.id));
+  return card;
+}
+
+function toggleWatch(id){
+  if(watch.has(id)) watch.delete(id); else watch.add(id);
+  writeState();
+  render();
+  toast(watch.has(id) ? 'Added to watch list' : 'Removed from watch list');
+}
+
+function paintCard(rec){
+  const on = watch.has(rec.cam.id);
+  rec.star.setAttribute('aria-pressed', String(on));
+  rec.card.classList.toggle('is-watched', on);
+  rec.dist.textContent = (nearMode && rec.cam.dist != null)
+    ? rec.cam.dist.toFixed(1) + ' mi away' : '';
+}
+
+function setDms(rec, line, sub){
+  rec.dms.querySelector('[data-line]').textContent = line;
+  rec.dms.querySelector('[data-sub]').textContent = sub;
+}
+
+async function attempt(rec, tryIndex = 0){
+  if(rec.cam.status !== 'online'){
+    rec.frame.dataset.state = 'reported';
+    setDms(rec, 'Out of service', 'City reports: ' + (rec.cam.status || 'unknown'));
+    rec.stamp.textContent = 'Reported down';
+    rec.stamp.dataset.stale = 'true';
+    return;
+  }
+  rec.frame.dataset.state = 'loading';
+  rec.stamp.textContent = 'Connecting';
+  rec.stamp.dataset.stale = 'false';
+
+  let url = imageUrl(rec.cam.id);
+  if(CONFIG.cacheBust) url += '?t=' + Date.now();
+
+  try{
+    await loadImage(url);
+    rec.img.src = url;
+    rec.img.classList.add('is-shown');
+    rec.frame.dataset.state = 'ok';
+    rec.loadedAt = new Date();
+    rec.stamp.textContent = timeString(rec.loadedAt);
+    rec.stamp.dataset.stale = 'false';
+  }catch{
+    if(tryIndex < CONFIG.retries){
+      rec.stamp.textContent = 'Retrying';
+      await new Promise(r => setTimeout(r, CONFIG.retryDelayMs * Math.pow(2, tryIndex)));
+      return attempt(rec, tryIndex + 1);
+    }
+    rec.img.classList.remove('is-shown');
+    rec.img.removeAttribute('src');
+    rec.frame.dataset.state = 'failed';
+    setDms(rec, 'Signal down', 'Camera not responding');
+    rec.stamp.textContent = 'No image';
+    rec.stamp.dataset.stale = 'true';
+  }
+  updateTally();
+}
+
+const seen = new WeakSet();
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if(!entry.isIntersecting) return;
+    const rec = cards.get(entry.target.dataset.camId);
+    if(rec && !seen.has(rec.card)){ seen.add(rec.card); enqueue(() => attempt(rec)); }
+  });
+}, { rootMargin:'400px 0px' });
+
+function visibleCameras(){
+  const q = qInput.value.trim().toLowerCase();
+  const list = cameras.filter(cam => {
+    if(watchOnly && !watch.has(cam.id)) return false;
+    if(!includeDown && cam.status !== 'online' && !watch.has(cam.id)) return false;
+    if(q && !(cam.name + ' camera ' + cam.id).toLowerCase().includes(q)) return false;
+    return true;
+  });
+  return list.sort((a,b) => {
+    const aw = watch.has(a.id) ? 0 : 1, bw = watch.has(b.id) ? 0 : 1;
+    if(aw !== bw) return aw - bw;
+    if(nearMode && a.dist != null && b.dist != null) return a.dist - b.dist;
+    if(nearMode && a.dist != null) return -1;
+    if(nearMode && b.dist != null) return 1;
+    return a.name.localeCompare(b.name) || Number(a.id) - Number(b.id);
+  });
+}
+
+function render(){
+  grid.innerHTML = '';
+  if(!cameras.length){
+    grid.innerHTML = '<div class="notice"><strong>No cameras loaded</strong>The status dataset did not return any camera records. Try refreshing.</div>';
+    return;
+  }
+  const visible = visibleCameras();
+  if(!visible.length){
+    grid.innerHTML = watchOnly
+      ? '<div class="notice"><strong>Your watch list is empty</strong>Tap the star on any camera to pin it here, then use Copy link to share the set.</div>'
+      : '<div class="notice"><strong>Nothing matches</strong>Try a street name like MoPac, Lamar, or Braker — or a camera number.</div>';
+    drawMarkers();
+    return;
+  }
+  const frag = document.createDocumentFragment();
+  visible.forEach(cam => {
+    const rec = cards.get(cam.id);
+    const card = rec ? rec.card : buildCard(cam);
+    card.dataset.camId = cam.id;
+    frag.appendChild(card);
+  });
+  grid.appendChild(frag);
+  visible.forEach(cam => {
+    const rec = cards.get(cam.id);
+    paintCard(rec);
+    observer.observe(rec.card);
+  });
+  drawMarkers();
+  updateTally();
+}
+
+function updateTally(){
+  const total = cameras.length;
+  if(!total){ tally.textContent = 'No cameras'; return; }
+  let ok = 0, bad = 0;
+  cards.forEach(r => {
+    if(r.frame.dataset.state === 'ok') ok++;
+    if(r.frame.dataset.state === 'failed' || r.frame.dataset.state === 'reported') bad++;
+  });
+  const star = watch.size ? ` · ${watch.size} watched` : '';
+  tally.textContent = (bad ? `${ok} live · ${bad} down · ${total} total`
+                           : `${ok} live · ${total} total`) + star;
+}
+
+setInterval(() => {
+  const now = Date.now();
+  cards.forEach(r => {
+    if(r.frame.dataset.state === 'ok' && r.loadedAt){
+      r.stamp.dataset.stale = (now - r.loadedAt.getTime() > CONFIG.staleAfterMs) ? 'true' : 'false';
+    }
+  });
+}, 20000);
+
+function refreshVisible(){
+  queue.length = 0;
+  cards.forEach(rec => { if(rec.card.isConnected && seen.has(rec.card)) enqueue(() => attempt(rec)); });
+}
+
+/* ── Map ─────────────────────────────────────────────────────── */
+function initMap(){
+  if(mapReady || typeof L === 'undefined') return;
+  map = L.map('map', { scrollWheelZoom:false }).setView([30.2672, -97.7431], 11);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution:'&copy; OpenStreetMap contributors &copy; CARTO',
+    subdomains:'abcd', maxZoom:19
+  }).addTo(map);
+  markerLayer = L.layerGroup().addTo(map);
+  mapReady = true;
+}
+function popupFor(cam){
+  const wrap = document.createElement('div');
+  const online = cam.status === 'online';
+  const name = document.createElement('div');
+  name.className = 'pop__name'; name.textContent = cam.name;
+  const meta = document.createElement('div');
+  meta.className = 'pop__meta' + (online ? '' : ' down');
+  meta.textContent = 'Camera ' + cam.id + ' · ' + (cam.status || 'unknown') +
+                     (cam.dist != null ? ' · ' + cam.dist.toFixed(1) + ' mi' : '');
+  wrap.append(name, meta);
+  if(online){
+    const btn = document.createElement('button');
+    btn.className = 'pop__btn'; btn.type = 'button'; btn.textContent = 'Open photo';
+    btn.addEventListener('click', () => {
+      const rec = cards.get(cam.id);
+      if(rec) openLightbox(rec); else showLightbox(cam.name, imageUrl(cam.id));
+    });
+    wrap.appendChild(btn);
+  }
+  const fav = document.createElement('button');
+  fav.className = 'pop__btn alt'; fav.type = 'button';
+  fav.textContent = watch.has(cam.id) ? '★ Watching' : '☆ Watch';
+  fav.addEventListener('click', () => { toggleWatch(cam.id); map.closePopup(); });
+  wrap.appendChild(fav);
+  return wrap;
+}
+function drawMarkers(){
+  if(!mapReady || !markerLayer) return;
+  markerLayer.clearLayers();
+  const shown = visibleCameras();
+  const list = shown.filter(c => c.lat != null && c.lng != null);
+  list.forEach(cam => {
+    const online = cam.status === 'online';
+    const watched = watch.has(cam.id);
+    L.circleMarker([cam.lat, cam.lng], {
+      radius: watched ? 7 : 5, weight: watched ? 2 : 1,
+      color: watched ? '#ffb612' : (online ? '#0a8a5a' : '#8a6208'),
+      fillColor: online ? '#0a8a5a' : '#ffb612', fillOpacity:.9
+    }).bindPopup(popupFor(cam)).addTo(markerLayer);
+  });
+  if(here){
+    L.circleMarker([here.lat, here.lng], {
+      radius:7, weight:2, color:'#5aa9ff', fillColor:'#5aa9ff', fillOpacity:.5
+    }).bindPopup('You are here').addTo(markerLayer);
+  }
+  const missing = shown.length - list.length;
+  mapCount.textContent = missing ? `${list.length} mapped · ${missing} without coordinates`
+                                 : `${list.length} mapped`;
+}
+
+mapBtn.addEventListener('click', () => {
+  const open = mapwrap.classList.toggle('is-open');
+  mapBtn.setAttribute('aria-pressed', String(open));
+  if(open){
+    initMap(); drawMarkers();
+    setTimeout(() => { if(map) map.invalidateSize(); }, 60);
+  }
+});
+
+/* ── Near me ─────────────────────────────────────────────────── */
+nearBtn.addEventListener('click', () => {
+  if(nearMode){
+    nearMode = false; nearBtn.setAttribute('aria-pressed','false');
+    nearBtn.textContent = 'Near me';
+    render(); return;
+  }
+  if(!navigator.geolocation){ toast('Location not supported'); return; }
+  nearBtn.textContent = 'Locating…'; nearBtn.disabled = true;
+  navigator.geolocation.getCurrentPosition(pos => {
+    here = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+    nearMode = true;
+    nearBtn.disabled = false;
+    nearBtn.textContent = 'Near me';
+    nearBtn.setAttribute('aria-pressed','true');
+    recomputeDistances();
+    render();
+    if(mapReady && map) map.setView([here.lat, here.lng], 13);
+    toast('Sorted by distance');
+  }, err => {
+    nearBtn.disabled = false; nearBtn.textContent = 'Near me';
+    toast(err.code === 1 ? 'Location permission denied' : 'Could not get location');
+  }, { enableHighAccuracy:false, timeout:10000, maximumAge:300000 });
+});
+
+/* ── Auto-refresh ────────────────────────────────────────────── */
+autoBtn.addEventListener('click', () => {
+  autoMode = !autoMode;
+  autoBtn.setAttribute('aria-pressed', String(autoMode));
+  clearInterval(autoTimer);
+  if(autoMode){
+    autoTimer = setInterval(() => {
+      if(!document.hidden) refreshVisible();
+    }, CONFIG.autoRefreshMs);
+    toast('Refreshing every 60 seconds');
+  }else{
+    toast('Auto-refresh off');
+  }
+});
+
+/* ── Share ───────────────────────────────────────────────────── */
+shareBtn.addEventListener('click', async () => {
+  writeState();
+  const url = location.href;
+  try{
+    await navigator.clipboard.writeText(url);
+    toast('Link copied');
+  }catch{
+    const box = document.createElement('textarea');
+    box.value = url; document.body.appendChild(box); box.select();
+    try{ document.execCommand('copy'); toast('Link copied'); }
+    catch{ toast('Copy failed — use the address bar'); }
+    box.remove();
+  }
+});
+
+/* ── Lightbox ────────────────────────────────────────────────── */
+function showLightbox(title, src){
+  lbTitle.textContent = title; lbImg.alt = title;
+  if(src){ lbImg.src = src; lbImg.style.display = ''; }
+  else { lbImg.removeAttribute('src'); lbImg.style.display = 'none'; }
+  lightbox.setAttribute('open','');
+  document.getElementById('lbClose').focus();
+}
+function openLightbox(rec){
+  const loaded = rec.frame.dataset.state === 'ok' && rec.img.src;
+  showLightbox(rec.cam.name, loaded ? rec.img.src : imageUrl(rec.cam.id));
+}
+function closeLightbox(){ lightbox.removeAttribute('open'); lbImg.removeAttribute('src'); }
+document.getElementById('lbClose').addEventListener('click', closeLightbox);
+lightbox.addEventListener('click', e => { if(e.target === lightbox) closeLightbox(); });
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeLightbox(); });
+
+/* ── Controls ────────────────────────────────────────────────── */
+let debounce;
+qInput.addEventListener('input', () => {
+  clearTimeout(debounce);
+  debounce = setTimeout(() => { writeState(); render(); }, 160);
+});
+downBtn.addEventListener('click', () => {
+  includeDown = !includeDown;
+  downBtn.setAttribute('aria-pressed', String(includeDown));
+  writeState(); render();
+});
+watchBtn.addEventListener('click', () => {
+  watchOnly = !watchOnly;
+  watchBtn.setAttribute('aria-pressed', String(watchOnly));
+  writeState(); render();
+});
+document.getElementById('refresh').addEventListener('click', refreshVisible);
+
+/* ── Start ───────────────────────────────────────────────────── */
+async function loadList(){
+  if(!places.size){
+    try{ places = await fetchPlaces(); }
+    catch(err){ console.error('Locations unavailable:', err); }
+  }
+  try{
+    cameras = await fetchCameras();
+    recomputeDistances();
+    const online = cameras.filter(c => c.status === 'online').length;
+    const mapped = cameras.filter(c => c.lat != null).length;
+    subhead.textContent = `${cameras.length} cameras · ${online} reported online` +
+                          (mapped ? ` · ${mapped} on the map` : '');
+  }catch(err){
+    cameras = [];
+    subhead.textContent = 'Camera list unavailable';
+    console.error(err);
+  }
+  cards.clear();
+  render();
+}
+
+readState();
+loadList();
+setInterval(loadList, CONFIG.listRefreshMs);
+</script>
 </body>
 </html>
